@@ -1,15 +1,40 @@
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import { DeleteFormModal, UpdateFormModal } from "./modal";
 import { AvatarImg } from "./images";
 import Typography from "./typography";
+import { compareObjectId } from "../utils";
+import { EventId } from "../constants";
 
 type ListItemWrapperProps = {
   children: ReactNode;
+  id: string;
+  selectedId: string;
+  handleSelect: (value: string) => void;
 };
 
-export const ListItemWrapper: FC<ListItemWrapperProps> = ({ children }) => {
+export const ListItemWrapper: FC<ListItemWrapperProps> = ({
+  children,
+  id,
+  selectedId,
+  handleSelect,
+}) => {
+  const [isActive, setIsActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (compareObjectId(id, selectedId)) {
+      return setIsActive(true);
+    }
+    setIsActive(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
+
   return (
-    <li className="flex justify-between items-center p-2 mb-2 rounded-md border border-slate-100 hover:shadow-sm hover:bg-slate-100 duration-300">
+    <li
+      onClick={() => handleSelect(id)}
+      className={`${
+        isActive ? "bg-slate-100" : ""
+      } flex justify-between items-center p-2 mb-2 rounded-md border border-slate-100 hover:shadow-sm hover:bg-slate-100 duration-300 hover:cursor-pointer`}
+    >
       {children}
     </li>
   );
@@ -31,28 +56,36 @@ export const ListItemAvatar: FC<ListItemAvatarProps> = ({ img, children }) => {
 
 type ListItemControlProps = {
   children: ReactNode;
-  handleUpdate: (value: string) => void;
-  handleRemove: (value: string) => void;
-  id: string;
-  name?: string;
+  handleUpdate: () => void;
+  handleRemove: () => void;
+  setEventId: (value: EventId) => void;
+  name: string;
 };
 
 export const ListItemControl: FC<ListItemControlProps> = ({
   children,
   handleRemove,
   handleUpdate,
-  id,
+  setEventId,
   name,
 }) => {
   return (
     <div className="flex justify-start items-center ">
       <div className="mx-4">
-        <UpdateFormModal title="update" handleSubmit={() => handleUpdate(id)}>
+        <UpdateFormModal
+          title={`Update ${name}`}
+          handleSubmit={handleUpdate}
+          setEventId={setEventId}
+        >
           {children}
         </UpdateFormModal>
       </div>
       <div>
-        <DeleteFormModal title="Confirm" handleSubmit={() => handleRemove(id)}>
+        <DeleteFormModal
+          title="Confirm"
+          handleSubmit={handleRemove}
+          setEventId={setEventId}
+        >
           <Typography text={`Delete "${name}"?`} type="name" size="normal" />
         </DeleteFormModal>
       </div>

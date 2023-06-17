@@ -45,10 +45,17 @@ type FixedContainerProps = {
 };
 
 const VariantMap = {
-  [Variant.TOP_LEFT]: "top-12 left-12",
-  [Variant.TOP_RIGHT]: "top-12 right-12",
-  [Variant.BOTTOM_LEFT]: "bottom-12 left-12",
+  [Variant.TOP_LEFT]: "top-12 left-20",
+  [Variant.TOP_RIGHT]: "top-12 right-20",
+  [Variant.BOTTOM_LEFT]: "bottom-12 left-20",
   [Variant.BOTTOM_RIGHT]: "bottom-16 right-20",
+};
+
+const AbsVariantMap = {
+  [Variant.TOP_LEFT]: "-top-12 left-4",
+  [Variant.TOP_RIGHT]: "-top-12 right-4",
+  [Variant.BOTTOM_LEFT]: "bottom-12 left-4",
+  [Variant.BOTTOM_RIGHT]: "bottom-16 right-4",
 };
 
 export const FixedContainer: React.FC<FixedContainerProps> = ({
@@ -57,6 +64,17 @@ export const FixedContainer: React.FC<FixedContainerProps> = ({
 }) => {
   return (
     <div className={classNames("fixed", VariantMap[variant])}>{children}</div>
+  );
+};
+
+export const AbsContainer: React.FC<FixedContainerProps> = ({
+  children,
+  variant = "top-left",
+}) => {
+  return (
+    <div className={classNames("absolute", AbsVariantMap[variant])}>
+      {children}
+    </div>
   );
 };
 

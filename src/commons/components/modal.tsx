@@ -1,8 +1,9 @@
 import React, { Fragment, useState } from "react";
 import { useFormikContext } from "formik";
 import { Dialog, Transition } from "@headlessui/react";
-import { Button, IconButton, RoundedButton } from "./buttons";
+import { Button, IconButton } from "./buttons";
 import { DeleteIcon, DetailIcon } from "./icons";
+import { EventId } from "../constants";
 
 type DialogModalProps = {
   children: React.ReactNode;
@@ -62,33 +63,32 @@ type FormModalProps = {
   type?: "add" | "update" | "assign" | "delete" | "unassign";
 };
 
+type FormModalWithEventProps = {
+  setEventId: (value: EventId) => void;
+};
+
 /** Add form dialog modal */
-export const AddFormModal: React.FC<FormModalProps> = ({
-  children,
-  title,
-  handleSubmit,
-}) => {
+export const AddFormModal: React.FC<
+  FormModalProps & FormModalWithEventProps
+> = ({ children, title, handleSubmit, setEventId }) => {
   const formikBag = useFormikContext();
   const [isOpen, setIsOpen] = useState(false);
 
   const RenderedButton = (
     <>
-      <RoundedButton
-        type="button"
-        label="+"
-        onClick={openModal}
-        variant="primary"
-      />
+      <Button type="button" label="Add" onClick={openModal} variant="primary" />
     </>
   );
 
   function closeModal() {
     setIsOpen(false);
+    setEventId(EventId.Init);
     formikBag.setErrors({});
     formikBag.resetForm();
   }
 
   function openModal() {
+    setEventId(EventId.Add);
     setIsOpen(true);
   }
 
@@ -127,11 +127,9 @@ export const AddFormModal: React.FC<FormModalProps> = ({
 };
 
 /** Update form dialog modal */
-export const UpdateFormModal: React.FC<FormModalProps> = ({
-  children,
-  title,
-  handleSubmit,
-}) => {
+export const UpdateFormModal: React.FC<
+  FormModalProps & FormModalWithEventProps
+> = ({ children, title, handleSubmit, setEventId }) => {
   const formikBag = useFormikContext();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -150,10 +148,12 @@ export const UpdateFormModal: React.FC<FormModalProps> = ({
 
   function closeModal() {
     setIsOpen(false);
+    setEventId(EventId.Init);
     formikBag.setErrors({});
   }
 
   function openModal() {
+    setEventId(EventId.Update);
     setIsOpen(true);
   }
 
@@ -306,11 +306,9 @@ export const UnasignFormModal: React.FC<FormModalProps> = ({
 };
 
 /** Delete form dialog modal */
-export const DeleteFormModal: React.FC<FormModalProps> = ({
-  children,
-  title,
-  handleSubmit,
-}) => {
+export const DeleteFormModal: React.FC<
+  FormModalProps & FormModalWithEventProps
+> = ({ children, title, handleSubmit, setEventId }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const RenderedButton = (
@@ -322,10 +320,12 @@ export const DeleteFormModal: React.FC<FormModalProps> = ({
   );
 
   function closeModal() {
+    setEventId(EventId.Init);
     setIsOpen(false);
   }
 
   function openModal() {
+    setEventId(EventId.Delete);
     setIsOpen(true);
   }
 

@@ -7,15 +7,27 @@ export type Mentor = {
   avatar: string;
   roles: string;
   id: string;
+  education: string;
+  specialized: string;
 };
 
-export const MentoInitial = {
+export const mentoInitial: Mentor = {
   email: "",
   name: "",
   languages: [],
   createdAt: "",
-  status: "",
+  status: "Active",
   avatar: "",
   roles: "",
   id: "",
+  education: "",
+  specialized: "",
+};
+
+export type Response<T> = {
+  response: Mentor;
+  status: string;
+  data: T;
+  result?: string;
+  grossCnt?: number;
 };
