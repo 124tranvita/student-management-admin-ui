@@ -24,8 +24,12 @@ export const mentoInitial: Mentor = {
   specialized: "",
 };
 
+export type ClassroomCnt = {
+  studentCnt: number;
+  mentorCnt: number;
+};
+
 export type Response<T> = {
-  response: Mentor;
   status: string;
   data: T;
   result?: string;

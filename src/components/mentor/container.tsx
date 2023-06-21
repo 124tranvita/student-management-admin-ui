@@ -2,20 +2,16 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { FormikContext, useFormik } from "formik";
 import {
   Wrapper,
-  Card,
-  Typography,
   AddFormModal,
-  HashDiv,
   AbsContainer,
   NavigatePanel,
   Loader,
   ComponentLoader,
   Pagination,
+  Buttons,
 } from "../../commons/components";
 import { Mentor } from "../../commons/model";
 import {
-  capitalize,
-  getEduction,
   isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
@@ -28,6 +24,9 @@ import { createValidationSchema } from "./validatation-schema";
 import { MentorFormikProps, mentorFormikInitial } from "./types";
 import CreateForm from "./create-form";
 import usePagination from "../../hooks/usePagination";
+import MentorInfo from "./mentor-info";
+import AssignPanel from "./assign-panel";
+import { createValidateSubmission } from "./validate-submission";
 
 /** TODO: Implement authentication */
 const refreshToken = "dasdasdasdasdas";
@@ -38,7 +37,7 @@ const Mentor: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [mentor, setMentor] = useState<Mentor>();
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(10);
+  const [limit, setLimit] = useState<number>(9);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
@@ -49,10 +48,9 @@ const Mentor: FC = () => {
     grossCnt: response.grossCnt || 0,
   });
 
-  console.log({ response });
   /** Get mentor list at init */
   useEffect(() => {
-    callApi(`mentor?page=${page}&limit=${limit}`, {
+    callApi(`mentor?id=648ddf96e34aa232e537b439&page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -64,31 +62,31 @@ const Mentor: FC = () => {
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      if (
-        eventId === Constants.EventId.Init ||
-        eventId === Constants.EventId.Add
-      ) {
-        setMentors(mentors.concat(response.data));
+      if (eventId === Constants.EventId.Add) {
+        return setMentors(mentors.concat(response.data));
       }
 
       if (eventId === Constants.EventId.Update) {
         const updated = serializedPatchResponse(mentors, response.data);
-        setMentors(updated);
+        return setMentors(updated);
       }
 
       if (eventId === Constants.EventId.Delete) {
         const updated = serializedDeleteResponse(mentors, response.data);
-        setMentors(updated);
+        return setMentors(updated);
       }
+
+      return setMentors(response.data);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
   useEffect(() => {
+    if (eventId === Constants.EventId.Update) return;
     if (mentors && mentors.length > 0) {
       setMentor(mentors[0]);
     }
-  }, [mentors]);
+  }, [mentors, eventId]);
 
   /** Create Submit */
   const onSubmit = useCallback((values: MentorFormikProps) => {
@@ -131,8 +129,6 @@ const Mentor: FC = () => {
       roles: values.roles,
     };
 
-    console.log({ data });
-
     callApi(`mentor/${values.id}`, {
       method: "PATCH",
       headers: {
@@ -146,6 +142,16 @@ const Mentor: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** Set component loading screen*/
+  const isComponentLoading = useMemo(() => {
+    return (
+      isLoading &&
+      ((isLoading && eventId === Constants.EventId.Add) ||
+        eventId === Constants.EventId.Update ||
+        eventId === Constants.EventId.Delete ||
+        eventId === Constants.EventId.Paging)
+    );
+  }, [isLoading, eventId]);
   /** Formik initial values*/
   const initialValues: MentorFormikProps = useMemo(() => {
     if (mentor && eventId === Constants.EventId.Update)
@@ -167,6 +173,7 @@ const Mentor: FC = () => {
   /** Formik bag */
   const formikBag = useFormik({
     initialValues,
+    validate: (values) => createValidateSubmission(values, eventId, mentor),
     validateOnBlur: false,
     validationSchema: () => createValidationSchema(eventId),
     onSubmit: (values) =>
@@ -217,8 +224,16 @@ const Mentor: FC = () => {
   }, []);
 
   /** Handle paging */
-  const handlePaging = useCallback(() => {
-    console.log("paging");
+  const handlePaging = useCallback((page: number) => {
+    setEventId(Constants.EventId.Paging);
+    callApi(`mentor?page=${page}&limit=${limit}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
+      },
+    });
+    setPage(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isLoading && eventId === Constants.EventId.Init) {
@@ -238,35 +253,24 @@ const Mentor: FC = () => {
   }
   return (
     <Wrapper>
-      <div className="relative">
+      {/* Left Panel */}
+      <div className="relative w-96">
         <NavigatePanel
-          path={[{ name: "Mentor", to: "/mentor", destiny: true }]}
+          path={[{ name: "Mentors", to: "/mentor", destiny: true }]}
         />
         {mentor && (
-          <Card avatar={mentor.avatar}>
-            <div className="mb-3">
-              <Typography text={mentor.name} type="title" size="large" />
-              <Typography text={mentor.email} type="description" />
-              <Typography text={capitalize(mentor.roles)} type="muted" />
-              <Typography
-                text={`${getEduction(mentor.education)} ${mentor.specialized}`}
-                type="muted"
-              />
-            </div>
-            {mentor.languages[0] &&
-              mentor.languages.map((item: string, index: number) => (
-                <HashDiv key={index} value={item} />
-              ))}
-          </Card>
+          <>
+            <MentorInfo mentor={mentor} />
+            <AssignPanel mentor={mentor} />
+          </>
         )}
       </div>
+
+      {/* Right Panel */}
       <FormikContext.Provider value={formikBag}>
-        <div className="relative w-3/4 p-4">
-          {isLoading &&
-          (eventId === Constants.EventId.Add ||
-            eventId === Constants.EventId.Update ||
-            eventId === Constants.EventId.Delete) ? (
-            <div className="relative h-32">
+        <div className="relative w-full p-4">
+          {isComponentLoading ? (
+            <div className="relative h-full">
               <ComponentLoader />
             </div>
           ) : (
@@ -279,19 +283,25 @@ const Mentor: FC = () => {
                 handleSelect={handleSelect}
                 setEventId={setEventId}
               />
-              <AbsContainer variant="top-right">
-                <AddFormModal
-                  title="Add new mentor"
-                  type="add"
-                  handleSubmit={handleSubmit}
-                  setEventId={setEventId}
-                >
-                  <CreateForm />
-                </AddFormModal>
-              </AbsContainer>
             </>
           )}
-          <div>
+          <AbsContainer variant="top-right">
+            {isLoading && eventId === Constants.EventId.Add ? (
+              <div className="absolute top-4 right-1">
+                <Buttons.ButtonLoader variant="primary" />
+              </div>
+            ) : (
+              <AddFormModal
+                title="Add new mentor"
+                type="add"
+                handleSubmit={handleSubmit}
+                setEventId={setEventId}
+              >
+                <CreateForm />
+              </AddFormModal>
+            )}
+          </AbsContainer>
+          <div className="absolute -bottom-24 left-0 right-0">
             <Pagination
               paginationRange={paginationRange}
               currentPage={page}

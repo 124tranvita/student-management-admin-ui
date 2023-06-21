@@ -1,7 +1,7 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useFormikContext } from "formik";
 import { Dialog, Transition } from "@headlessui/react";
-import { Button, IconButton } from "./buttons";
+import { Button, IconButton, RoundedIconButton } from "./buttons";
 import { DeleteIcon, DetailIcon } from "./icons";
 import { EventId } from "../constants";
 
@@ -135,21 +135,21 @@ export const UpdateFormModal: React.FC<
 
   const RenderedButton = (
     <>
-      <IconButton
+      <RoundedIconButton
         onClick={openModal}
         label="Update"
         variant="primary"
         type="button"
       >
         <DetailIcon />
-      </IconButton>
+      </RoundedIconButton>
     </>
   );
 
   function closeModal() {
     setIsOpen(false);
     setEventId(EventId.Init);
-    formikBag.setErrors({});
+    formikBag.setTouched({}, false);
   }
 
   function openModal() {
@@ -257,9 +257,9 @@ export const UnasignFormModal: React.FC<FormModalProps> = ({
 
   const RenderedButton = (
     <>
-      <IconButton variant="danger" onClick={openModal}>
+      <RoundedIconButton variant="danger" onClick={openModal}>
         <DeleteIcon />
-      </IconButton>
+      </RoundedIconButton>
     </>
   );
 
@@ -313,9 +313,9 @@ export const DeleteFormModal: React.FC<
 
   const RenderedButton = (
     <>
-      <IconButton variant="danger" onClick={openModal}>
+      <RoundedIconButton variant="danger" onClick={openModal}>
         <DeleteIcon />
-      </IconButton>
+      </RoundedIconButton>
     </>
   );
 
@@ -351,6 +351,83 @@ export const DeleteFormModal: React.FC<
             variant="danger"
             onClick={handleSubmit}
           />
+          <Button
+            type="button"
+            label="Close"
+            variant="primary"
+            onClick={closeModal}
+          />
+        </div>
+      </Dialog.Panel>
+    </DialogModal>
+  );
+};
+
+/** General Modal */
+type GeneralModalProps = {
+  icon: React.ReactNode;
+  label: string;
+  handleSubmit: () => void;
+};
+export const GeneralModal: React.FC<FormModalProps & GeneralModalProps> = ({
+  children,
+  icon,
+  title,
+  label,
+  handleSubmit,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      handleSubmit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const RenderedButton = (
+    <>
+      <IconButton
+        onClick={openModal}
+        variant="primary"
+        type="button"
+        label={label}
+      >
+        {icon}
+      </IconButton>
+    </>
+  );
+
+  function closeModal() {
+    setIsOpen(false);
+  }
+
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  return (
+    <DialogModal
+      isOpen={isOpen}
+      button={RenderedButton}
+      closeModal={closeModal}
+    >
+      <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+        <Dialog.Title
+          as="h3"
+          className="text-lg font-medium leading-6 text-gray-900"
+        >
+          {title}
+        </Dialog.Title>
+        <div className="mt-2">{children}</div>
+
+        <div className="flex justify-around mt-4">
+          {/* <Button
+            type="submit"
+            label="Delete"
+            variant="danger"
+            onClick={handleSubmit}
+          /> */}
           <Button
             type="button"
             label="Close"

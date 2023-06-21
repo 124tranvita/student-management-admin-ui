@@ -57,7 +57,8 @@ const useCallApi = <T,>(initData: T) => {
 
   const callApi = async (path: string, options: object) => {
     try {
-      const URL = import.meta.env.VITE_API_BASE_URL + path;
+      // const URL = import.meta.env.VITE_API_BASE_URL + path;
+      const URL = import.meta.env.VITE_API_BASE_URL_LOCAL + path;
       console.log({ URL });
 
       dispatch({
