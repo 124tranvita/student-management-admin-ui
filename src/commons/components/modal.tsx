@@ -82,7 +82,7 @@ export const AddFormModal: React.FC<
 
   function closeModal() {
     setIsOpen(false);
-    setEventId(EventId.Init);
+    setEventId(EventId.None);
     formikBag.setErrors({});
     formikBag.resetForm();
   }
@@ -148,7 +148,7 @@ export const UpdateFormModal: React.FC<
 
   function closeModal() {
     setIsOpen(false);
-    setEventId(EventId.Init);
+    setEventId(EventId.None);
     formikBag.setTouched({}, false);
   }
 
@@ -320,7 +320,7 @@ export const DeleteFormModal: React.FC<
   );
 
   function closeModal() {
-    setEventId(EventId.Init);
+    setEventId(EventId.None);
     setIsOpen(false);
   }
 

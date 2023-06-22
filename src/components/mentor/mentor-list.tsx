@@ -13,6 +13,7 @@ import { EventId } from "../../commons/constants";
 type Props = {
   mentors: Mentor[];
   selectedId: string;
+  limit: number;
   handleUpdate: (value: string) => void;
   handleRemove: (value: string) => void;
   handleSelect: (value: string) => void;
@@ -21,6 +22,7 @@ type Props = {
 const MentorList: FC<Props> = ({
   mentors,
   selectedId,
+  limit,
   handleUpdate,
   handleRemove,
   handleSelect,
@@ -32,6 +34,7 @@ const MentorList: FC<Props> = ({
         mentors.length > 0 &&
         mentors
           .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
+          .slice(0, limit)
           .map((item, index) => (
             <ListItemWrapper
               key={index}

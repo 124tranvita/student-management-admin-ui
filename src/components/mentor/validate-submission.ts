@@ -3,26 +3,16 @@ import { EventId } from "../../commons/constants";
 import { Mentor } from "../../commons/model";
 import { MentorFormikProps } from "./types";
 
-type Errors = {
-  email: string;
-  name: string;
-  languages: string;
-  status: string;
-  avatar: string;
-  roles: string;
-  education: string;
-  specialized: string;
-};
-const makeCompareObj = (value: Errors) => {
+type Errors = MentorFormikProps;
+const makeCompareObj = (value: MentorFormikProps) => {
   return {
-    email: value.email,
     name: value.name,
     languages: value.languages,
     status: value.status,
     avatar: value.avatar,
     roles: value.roles,
     specialized: value.specialized,
-  } as Errors;
+  } as MentorFormikProps;
 };
 
 export const createValidateSubmission = (
@@ -45,7 +35,7 @@ export const createValidateSubmission = (
     }
 
     for (const [key, value] of Object.entries(responseObj)) {
-      if (_.isEqual(inputObj[key as keyof Errors], value)) {
+      if (_.isEqual(inputObj[key as keyof MentorFormikProps], value)) {
         errors[key as keyof Errors] = "Please use another value";
       }
     }

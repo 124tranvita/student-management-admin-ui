@@ -10,20 +10,20 @@ import {
   Pagination,
   Buttons,
 } from "../../commons/components";
-import { Mentor } from "../../commons/model";
+import { Mentor, mentorInitial } from "../../commons/model";
 import {
   isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
   serializedPatchResponse,
 } from "../../commons/utils";
-import useCallApi from "../../hooks/useCallApi";
 import * as Constants from "../../commons/constants";
+import useCallApi from "../../hooks/useCallApi";
+import usePagination from "../../hooks/usePagination";
 import MentorList from "./mentor-list";
 import { createValidationSchema } from "./validatation-schema";
 import { MentorFormikProps, mentorFormikInitial } from "./types";
 import CreateForm from "./create-form";
-import usePagination from "../../hooks/usePagination";
 import MentorInfo from "./mentor-info";
 import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
@@ -37,12 +37,17 @@ const Mentor: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [mentor, setMentor] = useState<Mentor>();
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(9);
+  const [limit, setLimit] = useState<number>(5);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
-  const { callApi, response, isLoading, error } = useCallApi<Mentor[]>([]);
+  const { callApi, response, isLoading, error } = useCallApi<Mentor[] | Mentor>(
+    [] || mentorInitial
+  );
+
+  console.log({ mentors });
+
   const { paginationRange } = usePagination({
     limit,
     grossCnt: response.grossCnt || 0,
@@ -68,15 +73,16 @@ const Mentor: FC = () => {
 
       if (eventId === Constants.EventId.Update) {
         const updated = serializedPatchResponse(mentors, response.data);
+        setMentor(response.data as Mentor);
         return setMentors(updated);
       }
 
       if (eventId === Constants.EventId.Delete) {
         const updated = serializedDeleteResponse(mentors, response.data);
-        return setMentors(updated);
+        return setMentors(updated as Mentor[]);
       }
 
-      return setMentors(response.data);
+      return setMentors(response.data as Mentor[]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
@@ -146,7 +152,7 @@ const Mentor: FC = () => {
   const isComponentLoading = useMemo(() => {
     return (
       isLoading &&
-      ((isLoading && eventId === Constants.EventId.Add) ||
+      (eventId === Constants.EventId.Add ||
         eventId === Constants.EventId.Update ||
         eventId === Constants.EventId.Delete ||
         eventId === Constants.EventId.Paging)
@@ -278,6 +284,7 @@ const Mentor: FC = () => {
               <MentorList
                 mentors={mentors}
                 selectedId={mentor ? mentor.id : ""}
+                limit={limit}
                 handleUpdate={handleUpdate}
                 handleRemove={handleRemove}
                 handleSelect={handleSelect}

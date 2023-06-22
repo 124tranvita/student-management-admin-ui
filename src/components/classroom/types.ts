@@ -1,28 +1,15 @@
-export type MentorFormikProps = {
+export type ClassroomFormikProps = {
   id?: string;
-  email: string;
   name: string;
-  password?: string;
-  passwordConfirm?: string;
+  description?: string;
   languages: string;
-  education: string;
-  specialized: string;
-  avatar: string;
-  roles: string;
-  status: string;
+  image: string;
 };
 
-export const mentorFormikInitial: MentorFormikProps = {
+export const classroomFormikInitial: ClassroomFormikProps = {
   id: "",
-  email: "",
   name: "",
-  password: "",
-  passwordConfirm: "",
+  description: "",
   languages: "",
-  education: "1",
-  specialized: "",
-  avatar:
-    "https://www.iconarchive.com/download/i106655/diversity-avatars/avatars/native-man.512.png",
-  roles: "admin",
-  status: "Active",
+  image: "https://i.ytimg.com/vi/g1J4181W8ss/maxresdefault.jpg",
 };

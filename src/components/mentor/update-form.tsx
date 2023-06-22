@@ -14,6 +14,7 @@ const UpdateForm: FC = () => {
         name="email"
         type="text"
         className={className}
+        disabled={true}
       />
       <FormikTextInput
         label="Name"

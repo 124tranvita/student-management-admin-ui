@@ -10,7 +10,7 @@ import {
   Pagination,
   Buttons,
 } from "../../commons/components";
-import { Mentor } from "../../commons/model";
+import { Class, classInitial } from "../../commons/model";
 import {
   isNotNullData,
   isResponseSuccessfully,
@@ -19,12 +19,12 @@ import {
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
 import * as Constants from "../../commons/constants";
-import MentorList from "./mentor-list";
+import ClassroomList from "./classroom-list";
 import { createValidationSchema } from "./validatation-schema";
-import { MentorFormikProps, mentorFormikInitial } from "./types";
+import { ClassroomFormikProps, classroomFormikInitial } from "./types";
 import CreateForm from "./create-form";
 import usePagination from "../../hooks/usePagination";
-import MentorInfo from "./mentor-info";
+import ClassroomInfo from "./classroom-info";
 import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
 
@@ -34,15 +34,17 @@ const refreshToken = "dasdasdasdasdas";
 // import mentors from "../../assets/dev/mentors";
 
 const Classroom: FC = () => {
-  const [mentors, setMentors] = useState<Mentor[]>([]);
-  const [mentor, setMentor] = useState<Mentor>();
+  const [classrooms, setClassrooms] = useState<Class[]>([]);
+  const [classroom, setClassroom] = useState<Class>();
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(9);
+  const [limit, setLimit] = useState<number>(12);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
-  const { callApi, response, isLoading, error } = useCallApi<Mentor[]>([]);
+  const { callApi, response, isLoading, error } = useCallApi<Class[] | Class>(
+    [] || classInitial
+  );
   const { paginationRange } = usePagination({
     limit,
     grossCnt: response.grossCnt || 0,
@@ -51,7 +53,7 @@ const Classroom: FC = () => {
   console.log({ response });
   /** Get mentor list at init */
   useEffect(() => {
-    callApi(`mentor?id=648ddf96e34aa232e537b439&page=${page}&limit=${limit}`, {
+    callApi(`class?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -64,47 +66,42 @@ const Classroom: FC = () => {
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
       if (eventId === Constants.EventId.Add) {
-        return setMentors(mentors.concat(response.data));
+        return setClassrooms(classrooms.concat(response.data));
       }
 
       if (eventId === Constants.EventId.Update) {
-        const updated = serializedPatchResponse(mentors, response.data);
-        return setMentors(updated);
+        const updated = serializedPatchResponse(classrooms, response.data);
+        setClassroom(response.data as Class);
+        return setClassrooms(updated);
       }
 
       if (eventId === Constants.EventId.Delete) {
-        const updated = serializedDeleteResponse(mentors, response.data);
-        return setMentors(updated);
+        const updated = serializedDeleteResponse(classrooms, response.data);
+        return setClassrooms(updated);
       }
 
-      return setMentors(response.data);
+      return setClassrooms(response.data as Class[]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
   useEffect(() => {
     if (eventId === Constants.EventId.Update) return;
-    if (mentors && mentors.length > 0) {
-      setMentor(mentors[0]);
+    if (classrooms && classrooms.length > 0) {
+      setClassroom(classrooms[0]);
     }
-  }, [mentors, eventId]);
+  }, [classrooms, eventId]);
 
   /** Create Submit */
-  const onSubmit = useCallback((values: MentorFormikProps) => {
+  const onSubmit = useCallback((values: ClassroomFormikProps) => {
     const data = {
-      email: values.email,
       name: values.name,
-      password: values.password,
-      passwordConfirm: values.passwordConfirm,
+      description: values.description,
       languages: values.languages.replace(/' '/g, "").split(","),
-      education: values.education,
-      specialized: values.specialized,
-      status: "Active",
-      avatar: values.avatar,
-      roles: values.roles,
+      image: values.image,
     };
 
-    callApi("mentor", {
+    callApi("class", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -118,21 +115,15 @@ const Classroom: FC = () => {
   }, []);
 
   /** Update Submit */
-  const onUpdate = useCallback((values: MentorFormikProps) => {
+  const onUpdate = useCallback((values: ClassroomFormikProps) => {
     const data = {
-      email: values.email,
       name: values.name,
+      description: values.description,
       languages: values.languages.replace(/' '/g, "").split(","),
-      education: values.education,
-      specialized: values.specialized,
-      status: values.status,
-      avatar: values.avatar,
-      roles: values.roles,
+      image: values.image,
     };
 
-    console.log({ data });
-
-    callApi(`mentor/${values.id}`, {
+    callApi(`class/${values.id}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -156,29 +147,25 @@ const Classroom: FC = () => {
     );
   }, [isLoading, eventId]);
   /** Formik initial values*/
-  const initialValues: MentorFormikProps = useMemo(() => {
-    if (mentor && eventId === Constants.EventId.Update)
+  const initialValues: ClassroomFormikProps = useMemo(() => {
+    if (classroom && eventId === Constants.EventId.Update)
       return {
-        id: mentor.id,
-        email: mentor.email,
-        name: mentor.name,
-        languages: mentor.languages.toString(),
-        education: mentor.education,
-        specialized: mentor.specialized,
-        avatar: mentor.avatar,
-        roles: mentor.roles,
-        status: mentor.status,
+        id: classroom.id,
+        name: classroom.name,
+        description: classroom.description,
+        languages: classroom.languages.toString(),
+        image: classroom.image,
       };
 
-    return mentorFormikInitial;
-  }, [mentor, eventId]);
+    return classroomFormikInitial;
+  }, [classroom, eventId]);
 
   /** Formik bag */
   const formikBag = useFormik({
     initialValues,
-    validate: (values) => createValidateSubmission(values, eventId, mentor),
+    validate: (values) => createValidateSubmission(values, eventId, classroom),
     validateOnBlur: false,
-    validationSchema: () => createValidationSchema(eventId),
+    validationSchema: () => createValidationSchema(),
     onSubmit: (values) =>
       eventId === Constants.EventId.Add ? onSubmit(values) : onUpdate(values),
   });
@@ -209,15 +196,15 @@ const Classroom: FC = () => {
 
   /** Handle select mentor */
   const handleSelect = (value: string) => {
-    const mentor = mentors.find((item) => item.id === value);
-    if (mentor) {
-      setMentor(mentor);
+    const classroom = classrooms.find((item) => item.id === value);
+    if (classroom) {
+      setClassroom(classroom);
     }
   };
 
   /** Handle remove mentor */
   const handleRemove = useCallback((mentorId: string) => {
-    callApi(`mentor/${mentorId}`, {
+    callApi(`class/${mentorId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -229,7 +216,7 @@ const Classroom: FC = () => {
   /** Handle paging */
   const handlePaging = useCallback((page: number) => {
     setEventId(Constants.EventId.Paging);
-    callApi(`mentor?page=${page}&limit=${limit}`, {
+    callApi(`class?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -257,30 +244,31 @@ const Classroom: FC = () => {
   return (
     <Wrapper>
       {/* Left Panel */}
-      <div className="relative w-96">
+      <div className="relative w-1/4">
         <NavigatePanel
           path={[{ name: "Classrooms", to: "/classroom", destiny: true }]}
         />
-        {mentor && (
+        {classroom && (
           <>
-            <MentorInfo mentor={mentor} />
-            <AssignPanel mentor={mentor} />
+            <ClassroomInfo classroom={classroom} />
+            {/* <AssignPanel mentor={mentor} /> */}
           </>
         )}
       </div>
 
       {/* Right Panel */}
       <FormikContext.Provider value={formikBag}>
-        <div className="relative w-full p-4">
+        <div className="relative w-3/4 p-4">
           {isComponentLoading ? (
             <div className="relative h-full">
               <ComponentLoader />
             </div>
           ) : (
             <>
-              <MentorList
-                mentors={mentors}
-                selectedId={mentor ? mentor.id : ""}
+              <ClassroomList
+                classrooms={classrooms}
+                selectedId={classroom ? classroom.id : ""}
+                limit={limit}
                 handleUpdate={handleUpdate}
                 handleRemove={handleRemove}
                 handleSelect={handleSelect}

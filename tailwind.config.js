@@ -5,6 +5,7 @@ export default {
     extend: {
       height: {
         "card-classroom-img": "202px",
+        "70vh": "70vh",
       },
       width: {
         "card-classroom-img": "358px",

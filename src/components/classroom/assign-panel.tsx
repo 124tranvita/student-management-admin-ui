@@ -2,7 +2,7 @@ import { FC, useCallback } from "react";
 import { Icons } from "../../commons/components";
 import { GeneralModal } from "../../commons/components/modal";
 import useCallApi from "../../hooks/useCallApi";
-import { Mentor, mentoInitial } from "../../commons/model";
+import { Mentor, mentorInitial } from "../../commons/model";
 
 type AssignPanel = {
   mentor: Mentor;
@@ -13,9 +13,9 @@ const refreshToken = "dasdasdasdasdas";
 
 const AssignPanel: FC<AssignPanel> = ({ mentor }) => {
   const { callApi, response, isLoading, error } =
-    useCallApi<Mentor>(mentoInitial);
+    useCallApi<Mentor>(mentorInitial);
 
-  console.log({ response });
+  // console.log({ response });
 
   const handleShowAssingedStudents = useCallback(() => {
     callApi(`mentor/students/${mentor.id}`, {

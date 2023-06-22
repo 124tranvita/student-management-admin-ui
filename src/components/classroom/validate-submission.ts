@@ -1,34 +1,22 @@
 import * as _ from "lodash";
 import { EventId } from "../../commons/constants";
-import { Mentor } from "../../commons/model";
-import { MentorFormikProps } from "./types";
+import { Class } from "../../commons/model";
+import { ClassroomFormikProps } from "./types";
 
-type Errors = {
-  email: string;
-  name: string;
-  languages: string;
-  status: string;
-  avatar: string;
-  roles: string;
-  education: string;
-  specialized: string;
-};
-const makeCompareObj = (value: Errors) => {
+type Errors = ClassroomFormikProps;
+const makeCompareObj = (value: ClassroomFormikProps) => {
   return {
-    email: value.email,
     name: value.name,
+    description: value.description,
     languages: value.languages,
-    status: value.status,
-    avatar: value.avatar,
-    roles: value.roles,
-    specialized: value.specialized,
-  } as Errors;
+    image: value.image,
+  } as ClassroomFormikProps;
 };
 
 export const createValidateSubmission = (
-  values: MentorFormikProps,
+  values: ClassroomFormikProps,
   eventId: EventId,
-  response?: Mentor
+  response?: Class
 ) => {
   const errors = {} as Errors;
 
@@ -45,7 +33,7 @@ export const createValidateSubmission = (
     }
 
     for (const [key, value] of Object.entries(responseObj)) {
-      if (_.isEqual(inputObj[key as keyof Errors], value)) {
+      if (_.isEqual(inputObj[key as keyof ClassroomFormikProps], value)) {
         errors[key as keyof Errors] = "Please use another value";
       }
     }
