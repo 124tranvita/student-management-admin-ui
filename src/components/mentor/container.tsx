@@ -260,7 +260,7 @@ const Mentor: FC = () => {
   return (
     <Wrapper>
       {/* Left Panel */}
-      <div className="relative w-96">
+      <div className="relative w-1/4">
         <NavigatePanel
           path={[{ name: "Mentors", to: "/mentor", destiny: true }]}
         />
@@ -274,7 +274,7 @@ const Mentor: FC = () => {
 
       {/* Right Panel */}
       <FormikContext.Provider value={formikBag}>
-        <div className="relative w-full p-4">
+        <div className="relative w-3/4 p-4">
           {isComponentLoading ? (
             <div className="relative h-full">
               <ComponentLoader />

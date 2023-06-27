@@ -1,10 +1,10 @@
 import { FC } from "react";
-import { Class } from "../../commons/model";
+import { Classroom } from "../../commons/model";
 import { Card, HashDiv, Typography } from "../../commons/components";
 import { capitalize } from "../../commons/utils";
 
 type ClassroomInfoProps = {
-  classroom: Class;
+  classroom: Classroom;
 };
 
 const ClassroomInfo: FC<ClassroomInfoProps> = ({ classroom }) => {

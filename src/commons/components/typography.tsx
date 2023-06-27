@@ -3,13 +3,14 @@ import { classNames } from "../utils";
 type TypographyProps = {
   text: string;
   type: "title" | "description" | "base" | "muted" | "name";
-  size?: "normal" | "small" | "large";
+  size?: "normal" | "small" | "large" | "subtext";
 };
 
 enum Size {
   Normal = "normal",
   Small = "small",
   Large = "large",
+  Subtext = "subtext",
 }
 
 enum Type {
@@ -24,6 +25,7 @@ const SizeMap = {
   [Size.Large]: "text-xl",
   [Size.Small]: "text-xs",
   [Size.Normal]: "text-base",
+  [Size.Subtext]: "text-md",
 };
 
 const TypeMap = {

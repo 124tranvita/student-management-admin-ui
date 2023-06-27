@@ -24,7 +24,7 @@ export const mentorInitial: Mentor = {
   specialized: "",
 };
 
-export type Class = {
+export type Classroom = {
   id: string;
   name: string;
   description?: string;
@@ -35,7 +35,7 @@ export type Class = {
   students?: Student[];
 };
 
-export const classInitial: Class = {
+export const classroomInitial: Classroom = {
   id: "",
   name: "",
   description: "",
@@ -47,6 +47,7 @@ export const classInitial: Class = {
 };
 
 export type Student = {
+  id: string;
   studentId: string;
   name: string;
   doB: string;
@@ -55,11 +56,14 @@ export type Student = {
   languages: string[];
   status: string;
   avatar: string;
-  classes: Class[];
+  cover: string;
+  classes: Classroom[];
   mentor: Mentor;
+  createdAt: string;
 };
 
 export const studentInitial: Student = {
+  id: "",
   studentId: "",
   name: "",
   doB: "",
@@ -68,8 +72,10 @@ export const studentInitial: Student = {
   languages: [],
   status: "",
   avatar: "",
+  cover: "",
   classes: [],
   mentor: mentorInitial,
+  createdAt: "",
 };
 
 export type ClassroomCnt = {

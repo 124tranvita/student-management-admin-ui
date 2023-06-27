@@ -29,6 +29,16 @@ export const getEduction = (value: string) => {
   return value === "1" ? "Bachelor" : "College";
 };
 
+export const getGender = (value: string) => {
+  if (value !== "0" && value !== "1") return "Unknown";
+  return value === "1" ? "Male" : "Female";
+};
+
+export const getStatus = (value: string) => {
+  if (value !== "0" && value !== "1" && value !== "2") return "Unknown";
+  return value === "1" ? "Active" : value === "0" ? "Inactive" : "Busy";
+};
+
 export const serializedPatchResponse = <T>(
   data: any | T[],
   result: any | T

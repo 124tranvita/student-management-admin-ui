@@ -1,5 +1,4 @@
 import { FC } from "react";
-import { Classroom } from "../../commons/model";
 import {
   Typography,
   ListItemAvatar,
@@ -10,9 +9,10 @@ import { isBefore } from "../../commons/date-func";
 import { EventId } from "../../commons/constants";
 import { dateFormatter } from "../../commons/time-func";
 import UpdateForm from "./update-form";
+import { Student } from "../../commons/model";
 
 type Props = {
-  classrooms: Classroom[];
+  students: Student[];
   selectedId: string;
   limit: number;
   handleUpdate: (value: string) => void;
@@ -20,8 +20,8 @@ type Props = {
   handleSelect: (value: string) => void;
   setEventId: (value: EventId) => void;
 };
-const ClassroomList: FC<Props> = ({
-  classrooms,
+const StudentList: FC<Props> = ({
+  students,
   selectedId,
   limit,
   handleUpdate,
@@ -31,9 +31,9 @@ const ClassroomList: FC<Props> = ({
 }) => {
   return (
     <ul className="h-70vh">
-      {classrooms &&
-        classrooms.length > 0 &&
-        classrooms
+      {students &&
+        students.length > 0 &&
+        students
           .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
           .slice(0, limit)
           .map((item, index) => (
@@ -43,11 +43,11 @@ const ClassroomList: FC<Props> = ({
               selectedId={selectedId}
               handleSelect={handleSelect}
             >
-              <ListItemAvatar img={item.image}>
+              <ListItemAvatar img={item.avatar}>
                 <div className="w-48 xl:w-64">
                   <Typography text={item.name} type="name" size="normal" />
                   <Typography
-                    text={item.description || ""}
+                    text={item.studentId || ""}
                     type="muted"
                     size="small"
                   />
@@ -75,4 +75,4 @@ const ClassroomList: FC<Props> = ({
   );
 };
 
-export default ClassroomList;
+export default StudentList;

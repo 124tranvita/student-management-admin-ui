@@ -10,7 +10,7 @@ import {
   Pagination,
   Buttons,
 } from "../../commons/components";
-import { Class, classInitial } from "../../commons/model";
+import { Classroom, classroomInitial } from "../../commons/model";
 import {
   isNotNullData,
   isResponseSuccessfully,
@@ -19,14 +19,15 @@ import {
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
 import * as Constants from "../../commons/constants";
+import usePagination from "../../hooks/usePagination";
 import ClassroomList from "./classroom-list";
 import { createValidationSchema } from "./validatation-schema";
 import { ClassroomFormikProps, classroomFormikInitial } from "./types";
 import CreateForm from "./create-form";
-import usePagination from "../../hooks/usePagination";
 import ClassroomInfo from "./classroom-info";
-import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
+import AssignPanel from "./assign-panel";
+import NoItem from "./no-item";
 
 /** TODO: Implement authentication */
 const refreshToken = "dasdasdasdasdas";
@@ -34,17 +35,17 @@ const refreshToken = "dasdasdasdasdas";
 // import mentors from "../../assets/dev/mentors";
 
 const Classroom: FC = () => {
-  const [classrooms, setClassrooms] = useState<Class[]>([]);
-  const [classroom, setClassroom] = useState<Class>();
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+  const [classroom, setClassroom] = useState<Classroom>();
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(12);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
-  const { callApi, response, isLoading, error } = useCallApi<Class[] | Class>(
-    [] || classInitial
-  );
+  const { callApi, response, isLoading, error } = useCallApi<
+    Classroom[] | Classroom
+  >([] || classroomInitial);
   const { paginationRange } = usePagination({
     limit,
     grossCnt: response.grossCnt || 0,
@@ -53,7 +54,7 @@ const Classroom: FC = () => {
   console.log({ response });
   /** Get mentor list at init */
   useEffect(() => {
-    callApi(`class?page=${page}&limit=${limit}`, {
+    callApi(`classroom?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -71,7 +72,7 @@ const Classroom: FC = () => {
 
       if (eventId === Constants.EventId.Update) {
         const updated = serializedPatchResponse(classrooms, response.data);
-        setClassroom(response.data as Class);
+        setClassroom(response.data as Classroom);
         return setClassrooms(updated);
       }
 
@@ -80,13 +81,17 @@ const Classroom: FC = () => {
         return setClassrooms(updated);
       }
 
-      return setClassrooms(response.data as Class[]);
+      return setClassrooms(response.data as Classroom[]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
   useEffect(() => {
-    if (eventId === Constants.EventId.Update) return;
+    if (
+      eventId === Constants.EventId.Update ||
+      eventId === Constants.EventId.Delete
+    )
+      return;
     if (classrooms && classrooms.length > 0) {
       setClassroom(classrooms[0]);
     }
@@ -101,7 +106,7 @@ const Classroom: FC = () => {
       image: values.image,
     };
 
-    callApi("class", {
+    callApi("classroom", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -123,7 +128,7 @@ const Classroom: FC = () => {
       image: values.image,
     };
 
-    callApi(`class/${values.id}`, {
+    callApi(`classroom/${values.id}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -204,7 +209,7 @@ const Classroom: FC = () => {
 
   /** Handle remove mentor */
   const handleRemove = useCallback((mentorId: string) => {
-    callApi(`class/${mentorId}`, {
+    callApi(`classroom/${mentorId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -216,7 +221,7 @@ const Classroom: FC = () => {
   /** Handle paging */
   const handlePaging = useCallback((page: number) => {
     setEventId(Constants.EventId.Paging);
-    callApi(`class?page=${page}&limit=${limit}`, {
+    callApi(`classroom?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -231,6 +236,25 @@ const Classroom: FC = () => {
       <Wrapper>
         <Loader />
       </Wrapper>
+    );
+  }
+
+  if (classrooms && classrooms.length === 0) {
+    return (
+      <>
+        <NoItem>
+          <FormikContext.Provider value={formikBag}>
+            <AddFormModal
+              title="Add new classroom"
+              type="add"
+              handleSubmit={handleSubmit}
+              setEventId={setEventId}
+            >
+              <CreateForm />
+            </AddFormModal>
+          </FormikContext.Provider>
+        </NoItem>
+      </>
     );
   }
 
@@ -283,7 +307,7 @@ const Classroom: FC = () => {
               </div>
             ) : (
               <AddFormModal
-                title="Add new mentor"
+                title="Add new classroom"
                 type="add"
                 handleSubmit={handleSubmit}
                 setEventId={setEventId}
