@@ -37,7 +37,7 @@ const AssignPanel: FC<AssignPanel> = ({ mentor }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <div className="flex justify-between flex-wrap w-full px-1 border-t border-gray-200 pt-6">
+    <div className="flex flex-wrap w-full px-1 border-t border-gray-200 pt-6">
       <div className="mx-4 mb-3">
         <GeneralModal
           title="Assinged Students"

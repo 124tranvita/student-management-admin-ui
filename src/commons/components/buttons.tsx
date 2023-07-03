@@ -26,6 +26,7 @@ export const Button: React.FC<ButtonProps> = ({
   label,
   type = "button",
   variant,
+  disabled = false,
   onClick,
 }) => {
   return (
@@ -34,9 +35,11 @@ export const Button: React.FC<ButtonProps> = ({
         type={type}
         className={classNames(
           "inline-flex justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-          VariantMap[variant]
+          VariantMap[variant],
+          `${disabled ? "bg-slate-200 hover:bg-slate-200 text-slate-400" : ""}`
         )}
         onClick={onClick}
+        disabled={disabled}
       >
         {label}
       </button>

@@ -60,6 +60,7 @@ export type Student = {
   classes: Classroom[];
   mentor: Mentor;
   createdAt: string;
+  isAssigned: string;
 };
 
 export const studentInitial: Student = {
@@ -76,6 +77,7 @@ export const studentInitial: Student = {
   classes: [],
   mentor: mentorInitial,
   createdAt: "",
+  isAssigned: "",
 };
 
 export type ClassroomCnt = {
@@ -88,4 +90,26 @@ export type Response<T> = {
   data: T;
   result?: string;
   grossCnt?: number;
+};
+
+export type AssignStudentMentor = {
+  id: string;
+  assignedAt: string;
+  studentId: string;
+  studentName: string;
+  studentStatus: string;
+  mentorName: string;
+  mentor: Mentor;
+  student: Student;
+};
+
+export const assignStudentMentorInitial = {
+  id: "",
+  assignedAt: "",
+  studentId: "",
+  studentName: "",
+  studentStatus: "",
+  mentorName: "",
+  mentor: mentorInitial,
+  student: studentInitial,
 };

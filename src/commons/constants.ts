@@ -4,5 +4,7 @@ export enum EventId {
   Delete = "delete",
   Update = "update",
   Paging = "paging",
+  Assign = "assign",
+  Unassign = "unassign",
   None = "",
 }

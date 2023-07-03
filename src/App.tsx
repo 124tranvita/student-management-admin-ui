@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import { Classroom, Mentor, Page, Student } from "./pages";
+import { Classroom, Mentor, Student, Assign, Page } from "./pages";
 
 function App() {
   return (
@@ -9,6 +9,7 @@ function App() {
         <Route path="/mentor" element={<Mentor />} />
         <Route path="/classroom" element={<Classroom />} />
         <Route path="/student" element={<Student />} />
+        <Route path="/assign/:id" element={<Assign />} />
       </Routes>
     </div>
   );

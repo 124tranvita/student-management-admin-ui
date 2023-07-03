@@ -27,6 +27,8 @@ import CreateForm from "./create-form";
 import MentorInfo from "./mentor-info";
 import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
+import useTitle from "../../hooks/useTitle";
+import NoItem from "./no-item";
 
 /** TODO: Implement authentication */
 const refreshToken = "dasdasdasdasdas";
@@ -42,12 +44,10 @@ const Mentor: FC = () => {
     Constants.EventId.Init
   );
 
+  const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<Mentor[] | Mentor>(
     [] || mentorInitial
   );
-
-  console.log({ mentors });
-
   const { paginationRange } = usePagination({
     limit,
     grossCnt: response.grossCnt || 0,
@@ -55,6 +55,7 @@ const Mentor: FC = () => {
 
   /** Get mentor list at init */
   useEffect(() => {
+    setTitle("Mentors");
     callApi(`mentor?id=648ddf96e34aa232e537b439&page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
@@ -247,6 +248,23 @@ const Mentor: FC = () => {
       <Wrapper>
         <Loader />
       </Wrapper>
+    );
+  }
+
+  if (mentors && mentors.length === 0) {
+    return (
+      <NoItem>
+        <FormikContext.Provider value={formikBag}>
+          <AddFormModal
+            title="Add new mentor"
+            type="add"
+            handleSubmit={handleSubmit}
+            setEventId={setEventId}
+          >
+            <CreateForm />
+          </AddFormModal>
+        </FormikContext.Provider>
+      </NoItem>
     );
   }
 

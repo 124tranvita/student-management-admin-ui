@@ -5,10 +5,18 @@ export default {
     extend: {
       height: {
         "card-classroom-img": "202px",
+        "90per": "90%",
+        "50vh": "50vh",
+        "60vh": "60vh",
+        "62vh": "62vh",
+        "65vh": "65vh",
         "70vh": "70vh",
+        "80vh": "80vh",
       },
       width: {
         "card-classroom-img": "358px",
+        "60vw": "60vw",
+        "80vw": "80vw",
       },
     },
   },

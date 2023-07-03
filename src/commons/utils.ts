@@ -39,6 +39,18 @@ export const getStatus = (value: string) => {
   return value === "1" ? "Active" : value === "0" ? "Inactive" : "Busy";
 };
 
+export const getArrayDiff = (array1: any[], array2: any[]) => {
+  return array1.filter(
+    (object1) => !array2.some((object2) => object1.id === object2.id)
+  );
+};
+
+export const getAssignArrayDiff = (array1: any[], array2: any[]) => {
+  return array1.filter(
+    (object1) => !array2.some((object2) => object1.id === object2.student)
+  );
+};
+
 export const serializedPatchResponse = <T>(
   data: any | T[],
   result: any | T
@@ -58,6 +70,24 @@ export const serializedDeleteResponse = <T>(
   result: any | T
 ) => {
   const serialized = data.filter((item: any | T) => item.id !== result.id);
+
+  return serialized;
+};
+
+export const serializedDeleteResponseArray = <T>(
+  data: any[] | T[],
+  result: any[] | T[]
+) => {
+  const serialized = getArrayDiff(data, result);
+
+  return serialized;
+};
+
+export const serializedAssignResponseArray = <T>(
+  data: any[] | T[],
+  result: any[] | T[]
+) => {
+  const serialized = getAssignArrayDiff(data, result);
 
   return serialized;
 };

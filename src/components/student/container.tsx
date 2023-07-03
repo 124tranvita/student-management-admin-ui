@@ -29,6 +29,7 @@ import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
 import NoItem from "./no-item";
 import { dateFormatter } from "../../commons/time-func";
+import useTitle from "../../hooks/useTitle";
 
 /** TODO: Implement authentication */
 const refreshToken = "dasdasdasdasdas";
@@ -39,11 +40,12 @@ const Student: FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [student, setStudent] = useState<Student>();
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(12);
+  const [limit, setLimit] = useState<number>(9);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
+  const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<
     Student[] | Student
   >([] || studentInitial);
@@ -55,6 +57,7 @@ const Student: FC = () => {
   console.log({ response });
   /** Get mentor list at init */
   useEffect(() => {
+    setTitle("Students");
     callApi(`student?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {

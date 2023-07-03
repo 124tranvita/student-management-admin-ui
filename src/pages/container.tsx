@@ -14,6 +14,9 @@ const Page: FC = () => {
         <Link to={"/student"}>
           <li>Students</li>
         </Link>
+        <Link to={"/assign/123"}>
+          <li>Assign</li>
+        </Link>
       </ul>
     </>
   );

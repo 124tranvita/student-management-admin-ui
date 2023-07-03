@@ -1,60 +1,51 @@
-import { FC, useCallback } from "react";
+import { FC, useState } from "react";
 import { Icons } from "../../commons/components";
-import { GeneralModal } from "../../commons/components/modal";
-import useCallApi from "../../hooks/useCallApi";
-import { Mentor, mentorInitial } from "../../commons/model";
+import { AssignModal } from "../../commons/components/modal";
+import { Mentor } from "../../commons/model";
+import UnAssignedStudentList from "./unassign-students";
+import AssignedStudentList from "./assign-students";
 
 type AssignPanel = {
   mentor: Mentor;
 };
 
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
-
 const AssignPanel: FC<AssignPanel> = ({ mentor }) => {
-  const { callApi, response, isLoading, error } =
-    useCallApi<Mentor>(mentorInitial);
+  const [isUnassign, setIsUnassign] = useState<boolean>(false);
 
-  const handleShowAssingedStudents = useCallback(() => {
-    callApi(`mentor/students/${mentor.id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const data = {
+    studentTitle: isUnassign
+      ? `Mentor "${mentor.name}" assigned students`
+      : `Unassinged students list`,
+    studentComponent: isUnassign ? (
+      <UnAssignedStudentList mentorId={mentor.id} />
+    ) : (
+      <AssignedStudentList mentorId={mentor.id} />
+    ),
+  };
 
-  const handleShowAssingedClassrooms = useCallback(() => {
-    callApi(`mentor/classrooms/${mentor.id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   return (
-    <div className="flex justify-between flex-wrap w-full px-1 border-t border-gray-200 pt-6">
+    <div className="flex flex-wrap w-full px-1 border-t border-gray-200 pt-6">
       <div className="mx-4 mb-3">
-        <GeneralModal
-          title="Assinged Students"
+        <AssignModal
+          title={data.studentTitle}
           label="Students"
+          isUnassign={isUnassign}
+          setIsUnassign={setIsUnassign}
           icon={<Icons.ListStudentIcon />}
-          handleSubmit={handleShowAssingedStudents}
         >
-          <h1>Hi General modal</h1>
-        </GeneralModal>
+          {data.studentComponent}
+        </AssignModal>
       </div>
       <div className="mx-4 mb-3">
-        <GeneralModal
+        <AssignModal
           title="Assinged Classrooms"
           label="Classrooms"
+          isUnassign={isUnassign}
+          setIsUnassign={setIsUnassign}
           icon={<Icons.ListClassroomIcon />}
-          handleSubmit={handleShowAssingedClassrooms}
         >
           <h1>Hi General modal</h1>
-        </GeneralModal>
+        </AssignModal>
       </div>
     </div>
   );

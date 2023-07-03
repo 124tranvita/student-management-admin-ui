@@ -28,6 +28,7 @@ import ClassroomInfo from "./classroom-info";
 import { createValidateSubmission } from "./validate-submission";
 import AssignPanel from "./assign-panel";
 import NoItem from "./no-item";
+import useTitle from "../../hooks/useTitle";
 
 /** TODO: Implement authentication */
 const refreshToken = "dasdasdasdasdas";
@@ -43,6 +44,7 @@ const Classroom: FC = () => {
     Constants.EventId.Init
   );
 
+  const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<
     Classroom[] | Classroom
   >([] || classroomInitial);
@@ -54,6 +56,7 @@ const Classroom: FC = () => {
   console.log({ response });
   /** Get mentor list at init */
   useEffect(() => {
+    setTitle("Classrooms");
     callApi(`classroom?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
