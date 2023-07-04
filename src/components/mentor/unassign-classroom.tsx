@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Form, FormikContext, useFormik } from "formik";
-import { Student } from "../../commons/model";
+import { Classroom, Student } from "../../commons/model";
 import {
   Typography,
   ListItemAvatar,
@@ -14,6 +14,7 @@ import {
 import { isBefore } from "../../commons/date-func";
 import { EventId } from "../../commons/constants";
 import {
+  capitalize,
   getGender,
   getStatus,
   isResponseSuccessfully,
@@ -32,19 +33,20 @@ type FormikProps = {
 /** TODO: Implement authentication */
 const refreshToken = "dasdasdasdasdas";
 
-const AssignedStudentList: FC<Props> = ({ mentorId }) => {
-  const [records, setRecords] = useState<Student[]>([]);
+const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
+  const [records, setRecords] = useState<Classroom[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(25);
   const [eventId, setEventId] = useState<EventId>(EventId.Init);
 
-  const { callApi, response, isLoading, error } = useCallApi<Student[]>([]);
+  const { callApi, response, isLoading, error } = useCallApi<Classroom[]>([]);
 
   console.log({ response });
+  console.log({ assignPanel: error });
 
   /** Call API at init */
   useEffect(() => {
-    callApi(`student/unassign?page=${page}&limit=${limit}`, {
+    callApi(`classroom/unassign-mentor?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -62,8 +64,7 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
 
       if (eventId === EventId.Assign) {
         const updated = serializedAssignResponseArray(records, response.data);
-        console.log({ updated });
-        return setRecords(updated as Student[]);
+        return setRecords(updated as Classroom[]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,7 +73,7 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
   /** handle unassign one student per request */
   const handleAssign = useCallback((value: string) => {
     const data = {
-      studentIds: value.split(","),
+      classroomIds: value.split(","),
     };
 
     callApi(`assign/mentor/assign-student/${mentorId}`, {
@@ -138,14 +139,6 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
     return <NoAssign content="All students are assigned" />;
   }
 
-  // if (error) {
-  //   return (
-  //     <>
-  //       {/* <h1>{response.data.message}</h1> */}
-  //     </>
-  //   );
-  // }
-
   return (
     <FormikContext.Provider value={formikBag}>
       <ul className="h-90per overflow-auto">
@@ -156,15 +149,11 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
             .slice(0, limit)
             .map((item, index) => (
               <AssignListWrapper key={index}>
-                <ListItemAvatar
-                  img={
-                    "https://cdn-icons-png.flaticon.com/512/4128/4128349.png"
-                  }
-                >
+                <ListItemAvatar img={item.cover}>
                   <div className="w-64">
                     <Typography text={item.name} type="name" size="normal" />
                     <Typography
-                      text={`${item.studentId} - ${getStatus(item.status)}`}
+                      text={capitalize(item.description)}
                       type="muted"
                       size="small"
                     />
@@ -210,4 +199,4 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
   );
 };
 
-export default AssignedStudentList;
+export default UnassignClassroomList;

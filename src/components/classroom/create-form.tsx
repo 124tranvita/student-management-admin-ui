@@ -28,7 +28,7 @@ const CreateForm: FC = () => {
       />
       <FormikTextInput
         label="Cover"
-        name="image"
+        name="cover"
         type="text"
         className={className}
       />

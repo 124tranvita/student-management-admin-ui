@@ -9,7 +9,7 @@ const makeCompareObj = (value: ClassroomFormikProps) => {
     name: value.name,
     description: value.description,
     languages: value.languages,
-    image: value.image,
+    cover: value.cover,
   } as ClassroomFormikProps;
 };
 

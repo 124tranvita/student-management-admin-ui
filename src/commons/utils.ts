@@ -1,3 +1,4 @@
+import * as _ from "lodash";
 import { Response } from "./model";
 
 export const classNames = (
@@ -7,7 +8,8 @@ export const classNames = (
 };
 
 export const compareObjectId = (id1: string, id2: string) => {
-  return id1.toString() === id2.toString();
+  // return id1.toString() === id2.toString();
+  return _.isEqual(id1, id2);
 };
 
 export const isResponseSuccessfully = <T>(response: Response<T>) => {
@@ -56,7 +58,7 @@ export const serializedPatchResponse = <T>(
   result: any | T
 ) => {
   const serialized = data.map((item: any | T) => {
-    if (item.id === result.id) {
+    if (item._id === result._id) {
       item = result;
     }
     return item;
@@ -69,7 +71,7 @@ export const serializedDeleteResponse = <T>(
   data: any | T[],
   result: any | T
 ) => {
-  const serialized = data.filter((item: any | T) => item.id !== result.id);
+  const serialized = data.filter((item: any | T) => item._id !== result._id);
 
   return serialized;
 };

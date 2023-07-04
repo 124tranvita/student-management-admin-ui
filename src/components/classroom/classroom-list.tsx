@@ -43,8 +43,8 @@ const ClassroomList: FC<Props> = ({
               selectedId={selectedId}
               handleSelect={handleSelect}
             >
-              <ListItemAvatar img={item.image}>
-                <div className="w-48 xl:w-64">
+              <ListItemAvatar img={item.cover}>
+                <div className="w-48 xl:w-72">
                   <Typography text={item.name} type="name" size="normal" />
                   <Typography
                     text={item.description || ""}

@@ -369,16 +369,16 @@ export const UnassignFormModal: React.FC<
 type AssignModalProps = {
   icon: React.ReactNode;
   label: string;
-  isUnassign: boolean;
-  setIsUnassign: (value: boolean) => void;
+  isAssign: boolean;
+  setIsAssign: (value: boolean) => void;
 };
 export const AssignModal: React.FC<FormModalProps & AssignModalProps> = ({
   children,
   icon,
   title,
   label,
-  isUnassign,
-  setIsUnassign,
+  isAssign,
+  setIsAssign,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -400,6 +400,7 @@ export const AssignModal: React.FC<FormModalProps & AssignModalProps> = ({
   }
 
   function openModal() {
+    setIsAssign(true);
     setIsOpen(true);
   }
 
@@ -423,7 +424,7 @@ export const AssignModal: React.FC<FormModalProps & AssignModalProps> = ({
             type="button"
             label="Switch"
             variant="primary"
-            onClick={() => setIsUnassign(!isUnassign)}
+            onClick={() => setIsAssign(!isAssign)}
           />
           <Button
             type="button"

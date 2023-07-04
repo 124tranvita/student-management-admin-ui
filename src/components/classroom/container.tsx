@@ -106,7 +106,7 @@ const Classroom: FC = () => {
       name: values.name,
       description: values.description,
       languages: values.languages.replace(/' '/g, "").split(","),
-      image: values.image,
+      cover: values.cover,
     };
 
     callApi("classroom", {
@@ -128,7 +128,7 @@ const Classroom: FC = () => {
       name: values.name,
       description: values.description,
       languages: values.languages.replace(/' '/g, "").split(","),
-      image: values.image,
+      cover: values.cover,
     };
 
     callApi(`classroom/${values.id}`, {
@@ -162,7 +162,7 @@ const Classroom: FC = () => {
         name: classroom.name,
         description: classroom.description,
         languages: classroom.languages.toString(),
-        image: classroom.image,
+        cover: classroom.cover,
       };
 
     return classroomFormikInitial;

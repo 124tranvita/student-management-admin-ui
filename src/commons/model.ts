@@ -1,4 +1,5 @@
 export type Mentor = {
+  _id: string;
   email: string;
   name: string;
   languages: string[];
@@ -6,12 +7,14 @@ export type Mentor = {
   status: string;
   avatar: string;
   roles: string;
-  id: string;
   education: string;
   specialized: string;
+  assignedStudent: number;
+  assignedClassroom: number;
 };
 
 export const mentorInitial: Mentor = {
+  _id: "",
   email: "",
   name: "",
   languages: [],
@@ -19,9 +22,10 @@ export const mentorInitial: Mentor = {
   status: "Active",
   avatar: "",
   roles: "",
-  id: "",
   education: "",
   specialized: "",
+  assignedStudent: 0,
+  assignedClassroom: 0,
 };
 
 export type Classroom = {
@@ -30,7 +34,7 @@ export type Classroom = {
   description?: string;
   languages: string[];
   createdAt: string;
-  image: string;
+  cover: string;
   mentors?: Mentor[];
   students?: Student[];
 };
@@ -41,7 +45,7 @@ export const classroomInitial: Classroom = {
   description: "",
   languages: [],
   createdAt: "",
-  image: "",
+  cover: "",
   mentors: [],
   students: [],
 };
@@ -98,6 +102,7 @@ export type AssignStudentMentor = {
   studentId: string;
   studentName: string;
   studentStatus: string;
+  studentAvatar: string;
   mentorName: string;
   mentor: Mentor;
   student: Student;
@@ -109,7 +114,32 @@ export const assignStudentMentorInitial = {
   studentId: "",
   studentName: "",
   studentStatus: "",
+  studentAvatar: "",
   mentorName: "",
   mentor: mentorInitial,
   student: studentInitial,
+};
+
+export type AssignClassroomMentor = {
+  id: string;
+  assignedAt: string;
+  classroomName: string;
+  classroomDesc: string;
+  classroomLanguages: string[];
+  classroomCover: string;
+  mentorName: string;
+  mentor: Mentor;
+  classroom: Classroom;
+};
+
+export const assignClassroomMentorInitial = {
+  id: "",
+  assignedAt: "",
+  classroomName: "",
+  classroomDesc: "",
+  classroomLanguages: [],
+  classroomCover: "",
+  mentorName: "",
+  mentor: mentorInitial,
+  classroom: classroomInitial,
 };

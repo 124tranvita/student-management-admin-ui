@@ -75,6 +75,7 @@ const useCallApi = <T,>(initData: T) => {
 
       if (!response.ok) {
         const error = await response.json();
+
         dispatch({
           type: Constants.ACT_API_FAILURE,
           payload: {

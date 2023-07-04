@@ -2,24 +2,33 @@ import { FC, useState } from "react";
 import { Icons } from "../../commons/components";
 import { AssignModal } from "../../commons/components/modal";
 import { Mentor } from "../../commons/model";
-import UnAssignedStudentList from "./unassign-students";
-import AssignedStudentList from "./assign-students";
+import AssignedStudentList from "./assigned-students";
+import UnassignStudentList from "./unassign-students";
+import UnassignClassroomList from "./unassign-classroom";
 
 type AssignPanel = {
   mentor: Mentor;
 };
 
 const AssignPanel: FC<AssignPanel> = ({ mentor }) => {
-  const [isUnassign, setIsUnassign] = useState<boolean>(false);
+  const [isAssign, setIsAssign] = useState<boolean>(true);
 
   const data = {
-    studentTitle: isUnassign
+    studentTitle: isAssign
       ? `Mentor "${mentor.name}" assigned students`
-      : `Unassinged students list`,
-    studentComponent: isUnassign ? (
-      <UnAssignedStudentList mentorId={mentor.id} />
+      : `Unassigned students list`,
+    studentComponent: isAssign ? (
+      <AssignedStudentList mentorId={mentor._id} />
     ) : (
-      <AssignedStudentList mentorId={mentor.id} />
+      <UnassignStudentList mentorId={mentor._id} />
+    ),
+    classroomTitle: isAssign
+      ? `Mentor "${mentor.name}" assigned students`
+      : `Unassigned students list`,
+    classroomComponent: isAssign ? (
+      <AssignedStudentList mentorId={mentor._id} />
+    ) : (
+      <UnassignClassroomList mentorId={mentor._id} />
     ),
   };
 
@@ -29,8 +38,8 @@ const AssignPanel: FC<AssignPanel> = ({ mentor }) => {
         <AssignModal
           title={data.studentTitle}
           label="Students"
-          isUnassign={isUnassign}
-          setIsUnassign={setIsUnassign}
+          isAssign={isAssign}
+          setIsAssign={setIsAssign}
           icon={<Icons.ListStudentIcon />}
         >
           {data.studentComponent}
@@ -40,11 +49,11 @@ const AssignPanel: FC<AssignPanel> = ({ mentor }) => {
         <AssignModal
           title="Assinged Classrooms"
           label="Classrooms"
-          isUnassign={isUnassign}
-          setIsUnassign={setIsUnassign}
+          isAssign={isAssign}
+          setIsAssign={setIsAssign}
           icon={<Icons.ListClassroomIcon />}
         >
-          <h1>Hi General modal</h1>
+          <UnassignClassroomList mentorId={mentor._id} />
         </AssignModal>
       </div>
     </div>

@@ -21,8 +21,7 @@ export const mentorFormikInitial: MentorFormikProps = {
   languages: "",
   education: "1",
   specialized: "",
-  avatar:
-    "https://www.iconarchive.com/download/i106655/diversity-avatars/avatars/native-man.512.png",
+  avatar: "https://cdn-icons-png.flaticon.com/512/4128/4128405.png",
   roles: "admin",
   status: "Active",
 };

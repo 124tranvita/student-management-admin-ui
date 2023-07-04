@@ -29,6 +29,7 @@ import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
 import useTitle from "../../hooks/useTitle";
 import NoItem from "./no-item";
+import { Role } from "./constants";
 
 /** TODO: Implement authentication */
 const refreshToken = "dasdasdasdasdas";
@@ -48,6 +49,9 @@ const Mentor: FC = () => {
   const { callApi, response, isLoading, error } = useCallApi<Mentor[] | Mentor>(
     [] || mentorInitial
   );
+
+  console.log({ response });
+  console.log({ response });
   const { paginationRange } = usePagination({
     limit,
     grossCnt: response.grossCnt || 0,
@@ -163,7 +167,7 @@ const Mentor: FC = () => {
   const initialValues: MentorFormikProps = useMemo(() => {
     if (mentor && eventId === Constants.EventId.Update)
       return {
-        id: mentor.id,
+        id: mentor._id,
         email: mentor.email,
         name: mentor.name,
         languages: mentor.languages.toString(),
@@ -213,7 +217,7 @@ const Mentor: FC = () => {
 
   /** Handle select mentor */
   const handleSelect = (value: string) => {
-    const mentor = mentors.find((item) => item.id === value);
+    const mentor = mentors.find((item) => item._id === value);
     if (mentor) {
       setMentor(mentor);
     }
@@ -285,7 +289,11 @@ const Mentor: FC = () => {
         {mentor && (
           <>
             <MentorInfo mentor={mentor} />
-            <AssignPanel mentor={mentor} />
+            {mentor.roles === Role.Mentor && (
+              <>
+                <AssignPanel mentor={mentor} />
+              </>
+            )}
           </>
         )}
       </div>
@@ -301,7 +309,7 @@ const Mentor: FC = () => {
             <>
               <MentorList
                 mentors={mentors}
-                selectedId={mentor ? mentor.id : ""}
+                selectedId={mentor ? mentor._id : ""}
                 limit={limit}
                 handleUpdate={handleUpdate}
                 handleRemove={handleRemove}

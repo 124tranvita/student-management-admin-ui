@@ -1,11 +1,11 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Form, FormikContext, useFormik } from "formik";
-import { Student } from "../../commons/model";
+import { AssignStudentMentor } from "../../commons/model";
 import {
   Typography,
   ListItemAvatar,
   AssignListWrapper,
-  AssignListItemControl,
+  UnAssignListItemControl,
   FormikCheckbox,
   ComponentLoader,
   NoAssign,
@@ -14,10 +14,9 @@ import {
 import { isBefore } from "../../commons/date-func";
 import { EventId } from "../../commons/constants";
 import {
-  getGender,
   getStatus,
   isResponseSuccessfully,
-  serializedAssignResponseArray,
+  serializedDeleteResponseArray,
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
 
@@ -32,25 +31,29 @@ type FormikProps = {
 /** TODO: Implement authentication */
 const refreshToken = "dasdasdasdasdas";
 
-const UnassignStudentList: FC<Props> = ({ mentorId }) => {
-  const [records, setRecords] = useState<Student[]>([]);
+const AssignedStudentList: FC<Props> = ({ mentorId }) => {
+  const [records, setRecords] = useState<AssignStudentMentor[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(25);
   const [eventId, setEventId] = useState<EventId>(EventId.Init);
 
-  const { callApi, response, isLoading, error } = useCallApi<Student[]>([]);
+  const { callApi, response, isLoading, error } = useCallApi<
+    AssignStudentMentor[]
+  >([]);
 
   console.log({ response });
-  console.log({ assignPanel: error });
 
   /** Call API at init */
   useEffect(() => {
-    callApi(`student/unassign?page=${page}&limit=${limit}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    });
+    callApi(
+      `assign/mentor/student-to-mentor?id=${mentorId}&page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${refreshToken}`,
+        },
+      }
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -61,22 +64,21 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
         setRecords(records.concat(response.data));
       }
 
-      if (eventId === EventId.Assign) {
-        const updated = serializedAssignResponseArray(records, response.data);
-        console.log({ updated });
-        return setRecords(updated as Student[]);
+      if (eventId === EventId.Unassign) {
+        const updated = serializedDeleteResponseArray(records, response.data);
+        return setRecords(updated as AssignStudentMentor[]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, response]);
 
   /** handle unassign one student per request */
-  const handleAssign = useCallback((value: string) => {
+  const handleUnAssign = useCallback((value: string) => {
     const data = {
-      studentIds: value.split(","),
+      assignedIds: value.split(","),
     };
 
-    callApi(`assign/mentor/assign-student/${mentorId}`, {
+    callApi(`assign/mentor/unassign-student/${mentorId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -85,17 +87,17 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
       body: JSON.stringify(data),
     });
 
-    setEventId(EventId.Assign);
+    setEventId(EventId.Unassign);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /** handle unassing multiple students per request */
-  const handleAssignAll = useCallback((values: FormikProps) => {
+  const handleUnAssignAll = useCallback((values: FormikProps) => {
     const data = {
-      studentIds: values.checked,
+      assignedIds: values.checked,
     };
 
-    callApi(`assign/mentor/assign-student/${mentorId}`, {
+    callApi(`assign/mentor/unassign-student/${mentorId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -104,14 +106,15 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
       body: JSON.stringify(data),
     });
 
-    setEventId(EventId.Assign);
+    setEventId(EventId.Unassign);
+    // alert(JSON.stringify(values, null, 2));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /** Formik */
   const formikBag = useFormik({
     initialValues: { checked: [] } as FormikProps,
-    onSubmit: (values) => handleAssignAll(values),
+    onSubmit: (values) => handleUnAssignAll(values),
   });
 
   /** Handle submit */
@@ -136,16 +139,8 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
   }
 
   if (records && records.length === 0) {
-    return <NoAssign content="All students are assigned" />;
+    return <NoAssign content="Mentor has no assinged student" />;
   }
-
-  // if (error) {
-  //   return (
-  //     <>
-  //       {/* <h1>{response.data.message}</h1> */}
-  //     </>
-  //   );
-  // }
 
   return (
     <FormikContext.Provider value={formikBag}>
@@ -153,24 +148,30 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
         {records &&
           records.length > 0 &&
           records
-            .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
+            .sort((a, b) => (isBefore(a.assignedAt, b.assignedAt) ? 1 : -1))
             .slice(0, limit)
             .map((item, index) => (
               <AssignListWrapper key={index}>
-                <ListItemAvatar img={item.avatar}>
+                <ListItemAvatar img={item.studentAvatar}>
                   <div className="w-64">
-                    <Typography text={item.name} type="name" size="normal" />
                     <Typography
-                      text={`${item.studentId} - ${getStatus(item.status)}`}
+                      text={item.studentName}
+                      type="name"
+                      size="normal"
+                    />
+                    <Typography
+                      text={`${item.studentId} - ${getStatus(
+                        item.studentStatus
+                      )}`}
                       type="muted"
                       size="small"
                     />
                   </div>
                 </ListItemAvatar>
                 <div className="w-16">
-                  <Typography text="Gender" type="name" size="small" />
+                  <Typography text="Mentor" type="name" size="small" />
                   <Typography
-                    text={getGender(item.gender)}
+                    text={item.mentorName}
                     type="muted"
                     size="small"
                   />
@@ -180,10 +181,10 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
                     {""}
                   </FormikCheckbox>
                 </Form>
-                <AssignListItemControl
-                  handleAssign={() => handleAssign(item.id)}
+                <UnAssignListItemControl
+                  handleUnAssign={() => handleUnAssign(item.id)}
                   setEventId={setEventId}
-                  name={item.name}
+                  name={item.studentName}
                 />
               </AssignListWrapper>
             ))}
@@ -191,7 +192,7 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
       <div>
         <ConfirmModal
           title="Confirm"
-          label="Assign all"
+          label="Unassign all"
           handleSubmit={handleSubmit}
           setEventId={setEventId}
           disabled={!isChecked}
@@ -207,4 +208,4 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
   );
 };
 
-export default UnassignStudentList;
+export default AssignedStudentList;

@@ -10,6 +10,6 @@ export const createValidationSchema = () => {
 
     /** language */
     languages: Yup.string().required("Required"),
-    image: Yup.string().required("Required"),
+    cover: Yup.string().required("Required"),
   });
 };

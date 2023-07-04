@@ -1,6 +1,6 @@
 export enum Role {
-  admin = "admin",
-  mentor = "mentor",
+  Admin = "admin",
+  Mentor = "mentor",
 }
 
 export enum Education {
