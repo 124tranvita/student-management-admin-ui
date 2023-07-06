@@ -23,6 +23,16 @@ export const createValidateSubmission = (
   const errors = {} as Errors;
 
   if (response && eventId === EventId.Update) {
+    /** If mentor role have at least on assigned and change to admin role */
+    if (
+      response &&
+      response.assignedStudent > 0 &&
+      response.roles !== values.roles
+    ) {
+      errors["roles"] = "Please unassigned all students/classrooms first";
+    }
+
+    /** If there any change on update */
     const responseObj = makeCompareObj({
       ...response,
       languages: response.languages.toString(),
@@ -40,6 +50,8 @@ export const createValidateSubmission = (
       }
     }
   }
+
+  console.log({ response });
 
   return errors;
 };

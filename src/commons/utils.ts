@@ -43,13 +43,17 @@ export const getStatus = (value: string) => {
 
 export const getArrayDiff = (array1: any[], array2: any[]) => {
   return array1.filter(
-    (object1) => !array2.some((object2) => object1.id === object2.id)
+    (object1) => !array2.some((object2) => object1._id === object2._id)
   );
 };
 
-export const getAssignArrayDiff = (array1: any[], array2: any[]) => {
+export const getAssignArrayDiff = (
+  array1: any[],
+  array2: any[],
+  model: string
+) => {
   return array1.filter(
-    (object1) => !array2.some((object2) => object1.id === object2.student)
+    (object1) => !array2.some((object2) => object1._id === object2[model])
   );
 };
 
@@ -87,9 +91,10 @@ export const serializedDeleteResponseArray = <T>(
 
 export const serializedAssignResponseArray = <T>(
   data: any[] | T[],
-  result: any[] | T[]
+  result: any[] | T[],
+  model: string
 ) => {
-  const serialized = getAssignArrayDiff(data, result);
+  const serialized = getAssignArrayDiff(data, result, model);
 
   return serialized;
 };

@@ -300,7 +300,7 @@ const Mentor: FC = () => {
 
       {/* Right Panel */}
       <FormikContext.Provider value={formikBag}>
-        <div className="relative w-3/4 p-4">
+        <div className="relative w-3/4 p-4 h-75vh">
           {isComponentLoading ? (
             <div className="relative h-full">
               <ComponentLoader />

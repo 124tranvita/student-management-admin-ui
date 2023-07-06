@@ -5,6 +5,7 @@ import { Mentor } from "../../commons/model";
 import AssignedStudentList from "./assigned-students";
 import UnassignStudentList from "./unassign-students";
 import UnassignClassroomList from "./unassign-classroom";
+import AssignedClassroomList from "./assigned-classroom";
 
 type AssignPanel = {
   mentor: Mentor;
@@ -23,18 +24,18 @@ const AssignPanel: FC<AssignPanel> = ({ mentor }) => {
       <UnassignStudentList mentorId={mentor._id} />
     ),
     classroomTitle: isAssign
-      ? `Mentor "${mentor.name}" assigned students`
-      : `Unassigned students list`,
+      ? `Mentor "${mentor.name}" assigned classrooms`
+      : `Unassigned classrooms list`,
     classroomComponent: isAssign ? (
-      <AssignedStudentList mentorId={mentor._id} />
+      <AssignedClassroomList mentorId={mentor._id} />
     ) : (
       <UnassignClassroomList mentorId={mentor._id} />
     ),
   };
 
   return (
-    <div className="flex flex-wrap w-full px-1 border-t border-gray-200 pt-6">
-      <div className="mx-4 mb-3">
+    <div className="flex flex-wrap justify-evenly w-full px-1 border-t border-gray-200 pt-6">
+      <div className="mx-2 mb-3">
         <AssignModal
           title={data.studentTitle}
           label="Students"
@@ -45,15 +46,15 @@ const AssignPanel: FC<AssignPanel> = ({ mentor }) => {
           {data.studentComponent}
         </AssignModal>
       </div>
-      <div className="mx-4 mb-3">
+      <div className="mx-2 mb-3">
         <AssignModal
-          title="Assinged Classrooms"
+          title={data.classroomTitle}
           label="Classrooms"
           isAssign={isAssign}
           setIsAssign={setIsAssign}
           icon={<Icons.ListClassroomIcon />}
         >
-          <UnassignClassroomList mentorId={mentor._id} />
+          {data.classroomComponent}
         </AssignModal>
       </div>
     </div>

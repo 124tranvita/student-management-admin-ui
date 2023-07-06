@@ -15,8 +15,6 @@ import { isBefore } from "../../commons/date-func";
 import { EventId } from "../../commons/constants";
 import {
   capitalize,
-  getGender,
-  getStatus,
   isResponseSuccessfully,
   serializedAssignResponseArray,
 } from "../../commons/utils";
@@ -46,12 +44,15 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
 
   /** Call API at init */
   useEffect(() => {
-    callApi(`classroom/unassign-mentor?page=${page}&limit=${limit}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    });
+    callApi(
+      `classroom/unassign-mentor?id=${mentorId}&page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${refreshToken}`,
+        },
+      }
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -63,20 +64,26 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
       }
 
       if (eventId === EventId.Assign) {
-        const updated = serializedAssignResponseArray(records, response.data);
+        const updated = serializedAssignResponseArray(
+          records,
+          response.data,
+          "classroom"
+        );
+
+        console.log({ updated });
         return setRecords(updated as Classroom[]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, response]);
 
-  /** handle unassign one student per request */
+  /** Handle assign one classroom per request */
   const handleAssign = useCallback((value: string) => {
     const data = {
       classroomIds: value.split(","),
     };
 
-    callApi(`assign/mentor/assign-student/${mentorId}`, {
+    callApi(`assign/mentor/assign-classroom/${mentorId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -89,13 +96,13 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** handle unassing multiple students per request */
+  /** Handle assign multiple students per request */
   const handleAssignAll = useCallback((values: FormikProps) => {
     const data = {
-      studentIds: values.checked,
+      classroomIds: values.checked,
     };
 
-    callApi(`assign/mentor/assign-student/${mentorId}`, {
+    callApi(`assign/mentor/assign-classroom/${mentorId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${refreshToken}`,
@@ -136,7 +143,7 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
   }
 
   if (records && records.length === 0) {
-    return <NoAssign content="All students are assigned" />;
+    return <NoAssign content="All classrooms are assigned" />;
   }
 
   return (
@@ -153,27 +160,27 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
                   <div className="w-64">
                     <Typography text={item.name} type="name" size="normal" />
                     <Typography
-                      text={capitalize(item.description)}
+                      text={capitalize(item.description || "")}
                       type="muted"
                       size="small"
                     />
                   </div>
                 </ListItemAvatar>
                 <div className="w-16">
-                  <Typography text="Gender" type="name" size="small" />
+                  <Typography text="Mentors" type="name" size="small" />
                   <Typography
-                    text={getGender(item.gender)}
+                    text={`${item.assginedMentor}/25`}
                     type="muted"
                     size="small"
                   />
                 </div>
                 <Form>
-                  <FormikCheckbox name="checked" value={item.id}>
+                  <FormikCheckbox name="checked" value={item._id}>
                     {""}
                   </FormikCheckbox>
                 </Form>
                 <AssignListItemControl
-                  handleAssign={() => handleAssign(item.id)}
+                  handleAssign={() => handleAssign(item._id)}
                   setEventId={setEventId}
                   name={item.name}
                 />

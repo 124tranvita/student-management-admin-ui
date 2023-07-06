@@ -158,7 +158,7 @@ const Classroom: FC = () => {
   const initialValues: ClassroomFormikProps = useMemo(() => {
     if (classroom && eventId === Constants.EventId.Update)
       return {
-        id: classroom.id,
+        id: classroom._id,
         name: classroom.name,
         description: classroom.description,
         languages: classroom.languages.toString(),
@@ -204,7 +204,7 @@ const Classroom: FC = () => {
 
   /** Handle select mentor */
   const handleSelect = (value: string) => {
-    const classroom = classrooms.find((item) => item.id === value);
+    const classroom = classrooms.find((item) => item._id === value);
     if (classroom) {
       setClassroom(classroom);
     }
@@ -285,7 +285,7 @@ const Classroom: FC = () => {
 
       {/* Right Panel */}
       <FormikContext.Provider value={formikBag}>
-        <div className="relative w-3/4 p-4">
+        <div className="relative w-3/4 p-4 h-75vh">
           {isComponentLoading ? (
             <div className="relative h-full">
               <ComponentLoader />
@@ -294,7 +294,7 @@ const Classroom: FC = () => {
             <>
               <ClassroomList
                 classrooms={classrooms}
-                selectedId={classroom ? classroom.id : ""}
+                selectedId={classroom ? classroom._id : ""}
                 limit={limit}
                 handleUpdate={handleUpdate}
                 handleRemove={handleRemove}

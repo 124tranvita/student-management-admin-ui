@@ -48,7 +48,7 @@ type ListItemAvatarProps = {
 export const ListItemAvatar: FC<ListItemAvatarProps> = ({ img, children }) => {
   return (
     <div className="flex justify-start items-center">
-      <AvatarImg path={img} width="46" height="46" />
+      <AvatarImg path={img} width="36" height="36" />
       <div className="flex-column">{children}</div>
     </div>
   );

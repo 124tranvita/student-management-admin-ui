@@ -11,6 +11,7 @@ export default {
         "62vh": "62vh",
         "65vh": "65vh",
         "70vh": "70vh",
+        "75vh": "75vh",
         "80vh": "80vh",
       },
       width: {

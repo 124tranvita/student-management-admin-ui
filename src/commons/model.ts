@@ -29,7 +29,7 @@ export const mentorInitial: Mentor = {
 };
 
 export type Classroom = {
-  id: string;
+  _id: string;
   name: string;
   description?: string;
   languages: string[];
@@ -37,10 +37,12 @@ export type Classroom = {
   cover: string;
   mentors?: Mentor[];
   students?: Student[];
+  assginedMentor: number;
+  assginedStudent: number;
 };
 
 export const classroomInitial: Classroom = {
-  id: "",
+  _id: "",
   name: "",
   description: "",
   languages: [],
@@ -48,6 +50,8 @@ export const classroomInitial: Classroom = {
   cover: "",
   mentors: [],
   students: [],
+  assginedMentor: 0,
+  assginedStudent: 0,
 };
 
 export type Student = {
