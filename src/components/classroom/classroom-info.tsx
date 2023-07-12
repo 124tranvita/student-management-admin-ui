@@ -9,12 +9,22 @@ type ClassroomInfoProps = {
 
 const ClassroomInfo: FC<ClassroomInfoProps> = ({ classroom }) => {
   return (
-    <Card cover={classroom.image}>
+    <Card cover={classroom.cover}>
       <div className="mb-3">
         <Typography text={classroom.name} type="title" size="large" />
         <Typography
           text={capitalize(classroom.description || "")}
           type="description"
+        />
+      </div>
+      <div className="mb-6">
+        <Typography
+          text={`Assigned Mentors: ${classroom.assignedMentor}/6`}
+          type="muted"
+        />
+        <Typography
+          text={`Assigned students: ${classroom.assignedStudent}/25`}
+          type="muted"
         />
       </div>
       {classroom.languages[0] &&

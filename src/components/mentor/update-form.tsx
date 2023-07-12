@@ -45,8 +45,8 @@ const UpdateForm: FC = () => {
         className={className}
       />
       <FormikSelect label="Role" name="roles">
-        <option value={Role.mentor}>Mentor</option>
-        <option value={Role.admin}>Admin</option>
+        <option value={Role.Mentor}>Mentor</option>
+        <option value={Role.Admin}>Admin</option>
       </FormikSelect>
       <FormikSelect label="Status" name="status">
         <option value={Status.Active}>Active</option>

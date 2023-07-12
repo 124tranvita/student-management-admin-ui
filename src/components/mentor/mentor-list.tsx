@@ -7,8 +7,9 @@ import {
 } from "../../commons/components";
 import { ListItemControl } from "../../commons/components/list-item";
 import { isBefore } from "../../commons/date-func";
-import UpdateForm from "./update-form";
 import { EventId } from "../../commons/constants";
+import { capitalize, getStatus } from "../../commons/utils";
+import UpdateForm from "./update-form";
 
 type Props = {
   mentors: Mentor[];
@@ -38,7 +39,7 @@ const MentorList: FC<Props> = ({
           .map((item, index) => (
             <ListItemWrapper
               key={index}
-              id={item.id}
+              id={item._id}
               selectedId={selectedId}
               handleSelect={handleSelect}
             >
@@ -46,7 +47,7 @@ const MentorList: FC<Props> = ({
                 <div className="w-64">
                   <Typography text={item.name} type="name" size="normal" />
                   <Typography
-                    text={`${item.email} - ${item.status}`}
+                    text={`${item.email} - ${getStatus(item.status)}`}
                     type="muted"
                     size="small"
                   />
@@ -54,13 +55,20 @@ const MentorList: FC<Props> = ({
               </ListItemAvatar>
               <div className="w-16">
                 <Typography text="Role" type="name" size="small" />
-                <Typography text={item.roles} type="muted" size="small" />
+                <Typography
+                  text={capitalize(item.roles)}
+                  type="muted"
+                  size="small"
+                />
               </div>
               <ListItemControl
-                handleUpdate={() => handleUpdate(item.id)}
-                handleRemove={() => handleRemove(item.id)}
+                handleUpdate={() => handleUpdate(item._id)}
+                handleRemove={() => handleRemove(item._id)}
                 setEventId={setEventId}
                 name={item.name}
+                disabled={
+                  item.assignedClassroom > 0 || item.assignedStudent > 0
+                }
               >
                 <UpdateForm />
               </ListItemControl>

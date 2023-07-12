@@ -1,6 +1,6 @@
 export enum Role {
-  admin = "admin",
-  mentor = "mentor",
+  Admin = "admin",
+  Mentor = "mentor",
 }
 
 export enum Education {
@@ -9,6 +9,6 @@ export enum Education {
 }
 
 export enum Status {
-  Active = "Active",
-  Inactive = "Inactive",
+  Active = "1",
+  Inactive = "0",
 }

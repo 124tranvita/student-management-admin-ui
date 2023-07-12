@@ -20,6 +20,8 @@ import {
 import * as Constants from "../../commons/constants";
 import useCallApi from "../../hooks/useCallApi";
 import usePagination from "../../hooks/usePagination";
+import useTitle from "../../hooks/useTitle";
+import { useUserContext } from "../../hooks/useUserContext";
 import MentorList from "./mentor-list";
 import { createValidationSchema } from "./validatation-schema";
 import { MentorFormikProps, mentorFormikInitial } from "./types";
@@ -27,26 +29,25 @@ import CreateForm from "./create-form";
 import MentorInfo from "./mentor-info";
 import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
-
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
-
-// import mentors from "../../assets/dev/mentors";
+import NoItem from "./no-item";
+import { Role, Status } from "./constants";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 const Mentor: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [mentor, setMentor] = useState<Mentor>();
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(Constants.PAGE_LIMIT);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
+  const { signinToken } = useAuthContext();
+  const { user } = useUserContext();
+  const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<Mentor[] | Mentor>(
     [] || mentorInitial
   );
-
-  console.log({ mentors });
 
   const { paginationRange } = usePagination({
     limit,
@@ -55,10 +56,11 @@ const Mentor: FC = () => {
 
   /** Get mentor list at init */
   useEffect(() => {
-    callApi(`mentor?id=648ddf96e34aa232e537b439&page=${page}&limit=${limit}`, {
+    setTitle("Mentors");
+    callApi(`mentor?id=${user.sub}&page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,7 +106,7 @@ const Mentor: FC = () => {
       languages: values.languages.replace(/' '/g, "").split(","),
       education: values.education,
       specialized: values.specialized,
-      status: "Active",
+      status: Status.Active,
       avatar: values.avatar,
       roles: values.roles,
     };
@@ -112,7 +114,7 @@ const Mentor: FC = () => {
     callApi("mentor", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -138,7 +140,7 @@ const Mentor: FC = () => {
     callApi(`mentor/${values.id}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -162,7 +164,7 @@ const Mentor: FC = () => {
   const initialValues: MentorFormikProps = useMemo(() => {
     if (mentor && eventId === Constants.EventId.Update)
       return {
-        id: mentor.id,
+        id: mentor._id,
         email: mentor.email,
         name: mentor.name,
         languages: mentor.languages.toString(),
@@ -212,7 +214,7 @@ const Mentor: FC = () => {
 
   /** Handle select mentor */
   const handleSelect = (value: string) => {
-    const mentor = mentors.find((item) => item.id === value);
+    const mentor = mentors.find((item) => item._id === value);
     if (mentor) {
       setMentor(mentor);
     }
@@ -223,7 +225,7 @@ const Mentor: FC = () => {
     callApi(`mentor/${mentorId}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -235,7 +237,7 @@ const Mentor: FC = () => {
     callApi(`mentor?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     setPage(page);
@@ -247,6 +249,23 @@ const Mentor: FC = () => {
       <Wrapper>
         <Loader />
       </Wrapper>
+    );
+  }
+
+  if (mentors && mentors.length === 0) {
+    return (
+      <NoItem>
+        <FormikContext.Provider value={formikBag}>
+          <AddFormModal
+            title="Add new mentor"
+            type="add"
+            handleSubmit={handleSubmit}
+            setEventId={setEventId}
+          >
+            <CreateForm />
+          </AddFormModal>
+        </FormikContext.Provider>
+      </NoItem>
     );
   }
 
@@ -267,14 +286,19 @@ const Mentor: FC = () => {
         {mentor && (
           <>
             <MentorInfo mentor={mentor} />
-            <AssignPanel mentor={mentor} />
+            {mentor.roles === Role.Mentor &&
+              mentor.status === Status.Active && (
+                <>
+                  <AssignPanel mentor={mentor} />
+                </>
+              )}
           </>
         )}
       </div>
 
       {/* Right Panel */}
       <FormikContext.Provider value={formikBag}>
-        <div className="relative w-3/4 p-4">
+        <div className="relative w-3/4 p-4 h-75vh">
           {isComponentLoading ? (
             <div className="relative h-full">
               <ComponentLoader />
@@ -283,7 +307,7 @@ const Mentor: FC = () => {
             <>
               <MentorList
                 mentors={mentors}
-                selectedId={mentor ? mentor.id : ""}
+                selectedId={mentor ? mentor._id : ""}
                 limit={limit}
                 handleUpdate={handleUpdate}
                 handleRemove={handleRemove}
@@ -293,6 +317,7 @@ const Mentor: FC = () => {
             </>
           )}
           <AbsContainer variant="top-right">
+            <Buttons.ReloadButton />
             {isLoading && eventId === Constants.EventId.Add ? (
               <div className="absolute top-4 right-1">
                 <Buttons.ButtonLoader variant="primary" />

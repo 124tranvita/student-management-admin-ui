@@ -46,7 +46,7 @@ export const FormikCheckbox: React.FC<Props & FieldConfig> = ({
 
   return (
     <div>
-      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+      <label className="block text-md font-medium text-gray-900 dark:text-gray-300">
         <input type="checkbox" {...field} {...props} />
         {children}
       </label>

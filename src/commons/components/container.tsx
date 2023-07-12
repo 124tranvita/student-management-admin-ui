@@ -72,7 +72,12 @@ export const AbsContainer: React.FC<FixedContainerProps> = ({
   variant = "top-left",
 }) => {
   return (
-    <div className={classNames("absolute", AbsVariantMap[variant])}>
+    <div
+      className={classNames(
+        "absolute flex justify-between w-32",
+        AbsVariantMap[variant]
+      )}
+    >
       {children}
     </div>
   );

@@ -39,12 +39,12 @@ const ClassroomList: FC<Props> = ({
           .map((item, index) => (
             <ListItemWrapper
               key={index}
-              id={item.id}
+              id={item._id}
               selectedId={selectedId}
               handleSelect={handleSelect}
             >
-              <ListItemAvatar img={item.image}>
-                <div className="w-48 xl:w-64">
+              <ListItemAvatar img={item.cover}>
+                <div className="w-48 xl:w-72">
                   <Typography text={item.name} type="name" size="normal" />
                   <Typography
                     text={item.description || ""}
@@ -62,10 +62,11 @@ const ClassroomList: FC<Props> = ({
                 />
               </div>
               <ListItemControl
-                handleUpdate={() => handleUpdate(item.id)}
-                handleRemove={() => handleRemove(item.id)}
+                handleUpdate={() => handleUpdate(item._id)}
+                handleRemove={() => handleRemove(item._id)}
                 setEventId={setEventId}
                 name={item.name}
+                disabled={item.assignedMentor > 0 || item.assignedStudent > 0}
               >
                 <UpdateForm />
               </ListItemControl>

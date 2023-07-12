@@ -1,4 +1,6 @@
+import * as _ from "lodash";
 import { Response } from "./model";
+import { ResponseResult } from "./constants";
 
 export const classNames = (
   ...classes: (false | null | undefined | string)[]
@@ -7,18 +9,21 @@ export const classNames = (
 };
 
 export const compareObjectId = (id1: string, id2: string) => {
-  return id1.toString() === id2.toString();
+  // return id1.toString() === id2.toString();
+  return _.isEqual(id1, id2);
 };
 
 export const isResponseSuccessfully = <T>(response: Response<T>) => {
-  return response.status === "success";
+  return _.isEqual(response.status, ResponseResult.success);
 };
 
 export const isNotNullData = <T>(data: T) => {
-  return JSON.stringify(data) !== "{}";
+  return !_.isEmpty(data);
 };
 
 export const capitalize = (value: string) => {
+  if (!value) return "";
+
   const firstChar = value.slice(0, 1);
 
   return firstChar.toUpperCase() + value.slice(1);
@@ -39,12 +44,28 @@ export const getStatus = (value: string) => {
   return value === "1" ? "Active" : value === "0" ? "Inactive" : "Busy";
 };
 
+export const getArrayDiff = (array1: any[], array2: any[]) => {
+  return array1.filter(
+    (object1) => !array2.some((object2) => object1._id === object2._id)
+  );
+};
+
+export const getAssignArrayDiff = (
+  array1: any[],
+  array2: any[],
+  model: string
+) => {
+  return array1.filter(
+    (object1) => !array2.some((object2) => object1._id === object2[model])
+  );
+};
+
 export const serializedPatchResponse = <T>(
   data: any | T[],
   result: any | T
 ) => {
   const serialized = data.map((item: any | T) => {
-    if (item.id === result.id) {
+    if (item._id === result._id) {
       item = result;
     }
     return item;
@@ -57,7 +78,26 @@ export const serializedDeleteResponse = <T>(
   data: any | T[],
   result: any | T
 ) => {
-  const serialized = data.filter((item: any | T) => item.id !== result.id);
+  const serialized = data.filter((item: any | T) => item._id !== result._id);
+
+  return serialized;
+};
+
+export const serializedDeleteResponseArray = <T>(
+  data: any[] | T[],
+  result: any[] | T[]
+) => {
+  const serialized = getArrayDiff(data, result);
+
+  return serialized;
+};
+
+export const serializedAssignResponseArray = <T>(
+  data: any[] | T[],
+  result: any[] | T[],
+  model: string
+) => {
+  const serialized = getAssignArrayDiff(data, result, model);
 
   return serialized;
 };

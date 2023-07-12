@@ -39,7 +39,7 @@ const StudentList: FC<Props> = ({
           .map((item, index) => (
             <ListItemWrapper
               key={index}
-              id={item.id}
+              id={item._id}
               selectedId={selectedId}
               handleSelect={handleSelect}
             >
@@ -62,8 +62,8 @@ const StudentList: FC<Props> = ({
                 />
               </div>
               <ListItemControl
-                handleUpdate={() => handleUpdate(item.id)}
-                handleRemove={() => handleRemove(item.id)}
+                handleUpdate={() => handleUpdate(item._id)}
+                handleRemove={() => handleRemove(item._id)}
                 setEventId={setEventId}
                 name={item.name}
               >

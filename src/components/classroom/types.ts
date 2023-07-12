@@ -3,7 +3,7 @@ export type ClassroomFormikProps = {
   name: string;
   description?: string;
   languages: string;
-  image: string;
+  cover: string;
 };
 
 export const classroomFormikInitial: ClassroomFormikProps = {
@@ -11,5 +11,6 @@ export const classroomFormikInitial: ClassroomFormikProps = {
   name: "",
   description: "",
   languages: "",
-  image: "https://i.ytimg.com/vi/g1J4181W8ss/maxresdefault.jpg",
+  cover:
+    "https://codequotient.com/blog/wp-content/uploads/2020/12/Are-All-Online-Coding-Classes-The-Same.jpg",
 };

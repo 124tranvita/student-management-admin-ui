@@ -1,4 +1,5 @@
 export type Mentor = {
+  _id: string;
   email: string;
   name: string;
   languages: string[];
@@ -6,12 +7,14 @@ export type Mentor = {
   status: string;
   avatar: string;
   roles: string;
-  id: string;
   education: string;
   specialized: string;
+  assignedStudent: number;
+  assignedClassroom: number;
 };
 
 export const mentorInitial: Mentor = {
+  _id: "",
   email: "",
   name: "",
   languages: [],
@@ -19,35 +22,40 @@ export const mentorInitial: Mentor = {
   status: "Active",
   avatar: "",
   roles: "",
-  id: "",
   education: "",
   specialized: "",
+  assignedStudent: 0,
+  assignedClassroom: 0,
 };
 
 export type Classroom = {
-  id: string;
+  _id: string;
   name: string;
   description?: string;
   languages: string[];
   createdAt: string;
-  image: string;
+  cover: string;
   mentors?: Mentor[];
   students?: Student[];
+  assignedMentor: number;
+  assignedStudent: number;
 };
 
 export const classroomInitial: Classroom = {
-  id: "",
+  _id: "",
   name: "",
   description: "",
   languages: [],
   createdAt: "",
-  image: "",
+  cover: "",
   mentors: [],
   students: [],
+  assignedMentor: 0,
+  assignedStudent: 0,
 };
 
 export type Student = {
-  id: string;
+  _id: string;
   studentId: string;
   name: string;
   doB: string;
@@ -60,10 +68,11 @@ export type Student = {
   classes: Classroom[];
   mentor: Mentor;
   createdAt: string;
+  isAssigned: string;
 };
 
 export const studentInitial: Student = {
-  id: "",
+  _id: "",
   studentId: "",
   name: "",
   doB: "",
@@ -76,6 +85,7 @@ export const studentInitial: Student = {
   classes: [],
   mentor: mentorInitial,
   createdAt: "",
+  isAssigned: "",
 };
 
 export type ClassroomCnt = {
@@ -88,4 +98,82 @@ export type Response<T> = {
   data: T;
   result?: string;
   grossCnt?: number;
+};
+
+export type AssignStudentMentor = {
+  id: string;
+  assignedAt: string;
+  studentId: string;
+  studentName: string;
+  studentStatus: string;
+  studentAvatar: string;
+  mentorName: string;
+  mentor: Mentor;
+  student: Student;
+};
+
+export const assignStudentMentorInitial: AssignStudentMentor = {
+  id: "",
+  assignedAt: "",
+  studentId: "",
+  studentName: "",
+  studentStatus: "",
+  studentAvatar: "",
+  mentorName: "",
+  mentor: mentorInitial,
+  student: studentInitial,
+};
+
+export type AssignClassroomMentor = {
+  _id: string;
+  assignedAt: string;
+  name: string;
+  description?: string;
+  languages: string[];
+  cover: string;
+  assignee: string;
+  email?: string;
+  status?: string;
+  avatar?: string;
+  mentor: Mentor;
+  classroom: Classroom;
+};
+
+export const assignClassroomMentorInitial: AssignClassroomMentor = {
+  _id: "",
+  assignedAt: "",
+  name: "",
+  description: "",
+  languages: [],
+  cover: "",
+  assignee: "",
+  email: "",
+  status: "",
+  avatar: "",
+  mentor: mentorInitial,
+  classroom: classroomInitial,
+};
+
+export type SigninToken = {
+  accessToken: string;
+  refreshToken: string;
+};
+
+export const signinTokenInitial: SigninToken = {
+  accessToken: "",
+  refreshToken: "",
+};
+
+export type User = {
+  sub: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+};
+
+export const userInitial: User = {
+  sub: "",
+  email: "",
+  iat: 0,
+  exp: 0,
 };

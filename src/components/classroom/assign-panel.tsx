@@ -1,62 +1,40 @@
-import { FC, useCallback } from "react";
+import { FC, useState } from "react";
 import { Icons } from "../../commons/components";
-import { GeneralModal } from "../../commons/components/modal";
-import useCallApi from "../../hooks/useCallApi";
-import { Mentor, mentorInitial } from "../../commons/model";
+import { AssignModal } from "../../commons/components/modal";
+import { Classroom } from "../../commons/model";
+import UnassignMentorList from "./unassign-mentors";
+import AssignedMentorList from "./assigned-mentors";
 
 type AssignPanel = {
-  mentor: Mentor;
+  classroom: Classroom;
 };
 
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
+const AssignPanel: FC<AssignPanel> = ({ classroom }) => {
+  const [isAssign, setIsAssign] = useState<boolean>(true);
 
-const AssignPanel: FC<AssignPanel> = ({ mentor }) => {
-  const { callApi, response, isLoading, error } =
-    useCallApi<Mentor>(mentorInitial);
+  const data = {
+    title: isAssign
+      ? `Classroom "${classroom.name}" assigned mentors`
+      : `Unassigned mentors list`,
+    component: isAssign ? (
+      <AssignedMentorList classroomId={classroom._id} />
+    ) : (
+      <UnassignMentorList classroomId={classroom._id} />
+    ),
+  };
 
-  // console.log({ response });
-
-  const handleShowAssingedStudents = useCallback(() => {
-    callApi(`mentor/students/${mentor.id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleShowAssingedClassrooms = useCallback(() => {
-    callApi(`mentor/classrooms/${mentor.id}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${refreshToken}`,
-      },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   return (
-    <div className="flex justify-between flex-wrap w-full px-1 border-t border-gray-200 pt-6">
-      <div className="mx-4 mb-3">
-        <GeneralModal
-          title="Assinged Students"
-          label="Students"
+    <div className="flex flex-wrap justify-evenly w-full px-1 border-t border-gray-200 pt-6">
+      <div className="mx-2 mb-3">
+        <AssignModal
+          title={data.title}
+          label="Mentors"
+          isAssign={isAssign}
+          setIsAssign={setIsAssign}
           icon={<Icons.ListStudentIcon />}
-          handleSubmit={handleShowAssingedStudents}
         >
-          <h1>Hi General modal</h1>
-        </GeneralModal>
-      </div>
-      <div className="mx-4 mb-3">
-        <GeneralModal
-          title="Assinged Classrooms"
-          label="Classrooms"
-          icon={<Icons.ListClassroomIcon />}
-          handleSubmit={handleShowAssingedClassrooms}
-        >
-          <h1>Hi General modal</h1>
-        </GeneralModal>
+          {data.component}
+        </AssignModal>
       </div>
     </div>
   );

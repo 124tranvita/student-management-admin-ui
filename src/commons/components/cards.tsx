@@ -7,7 +7,7 @@ type CardProps = {
 };
 
 const defaultCover =
-  "https://img.freepik.com/premium-vector/cloud-blue-heaven-sunny-summer-day-cloudy-nature-morning-scene-with-falling-star_461812-64.jpg";
+  "https://img.freepik.com/premium-vector/modern-digital-futuristic-abstract-background-template_358261-24.jpg";
 
 export const Card: React.FC<CardProps> = ({ children, avatar, cover }) => {
   return (
