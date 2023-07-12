@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Form, FormikContext, useFormik } from "formik";
-import { Classroom, Student } from "../../commons/model";
+import { Mentor } from "../../commons/model";
 import {
   Typography,
   ListItemAvatar,
@@ -14,34 +14,35 @@ import {
 import { isBefore } from "../../commons/date-func";
 import { EventId } from "../../commons/constants";
 import {
-  capitalize,
+  getStatus,
   isResponseSuccessfully,
   serializedAssignResponseArray,
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
+import { Status } from "../mentor/constants";
 import { useAuthContext } from "../../hooks/useAuthContext";
 
 type Props = {
-  mentorId: string;
+  classroomId: string;
 };
 
 type FormikProps = {
   checked: string[];
 };
 
-const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
-  const [records, setRecords] = useState<Classroom[]>([]);
+const UnassignMentorList: FC<Props> = ({ classroomId }) => {
+  const [records, setRecords] = useState<Mentor[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(25);
   const [eventId, setEventId] = useState<EventId>(EventId.Init);
 
   const { signinToken } = useAuthContext();
-  const { callApi, response, isLoading, error } = useCallApi<Classroom[]>([]);
+  const { callApi, response, isLoading, error } = useCallApi<Mentor[]>([]);
 
   /** Call API at init */
   useEffect(() => {
     callApi(
-      `classroom/unassign-mentor?id=${mentorId}&page=${page}&limit=${limit}`,
+      `mentor/classroom-unassign?id=${classroomId}&page=${page}&limit=${limit}`,
       {
         method: "GET",
         headers: {
@@ -63,21 +64,22 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
         const updated = serializedAssignResponseArray(
           records,
           response.data,
-          "classroom"
+          "mentor"
         );
-        return setRecords(updated as Classroom[]);
+        console.log({ updated });
+        return setRecords(updated as Mentor[]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, response]);
 
-  /** Handle assign one classroom per request */
+  /** handle unassign one student per request */
   const handleAssign = useCallback((value: string) => {
     const data = {
       selectedIds: value.split(","),
     };
 
-    callApi(`assign/mentor/assign-classroom/${mentorId}`, {
+    callApi(`assign/classroom/assign-mentor/${classroomId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${signinToken.accessToken}`,
@@ -90,13 +92,13 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Handle assign multiple students per request */
+  /** handle unassing multiple students per request */
   const handleAssignAll = useCallback((values: FormikProps) => {
     const data = {
       selectedIds: values.checked,
     };
 
-    callApi(`assign/mentor/assign-classroom/${mentorId}`, {
+    callApi(`assign/classroom/assign-mentor/${classroomId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${signinToken.accessToken}`,
@@ -137,7 +139,7 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
   }
 
   if (records && records.length === 0) {
-    return <NoAssign content="All classrooms are assigned" />;
+    return <NoAssign content="All mentors are assigned" />;
   }
 
   return (
@@ -150,34 +152,47 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
             .slice(0, limit)
             .map((item, index) => (
               <AssignListWrapper key={index}>
-                <ListItemAvatar img={item.cover}>
+                <ListItemAvatar img={item.avatar}>
                   <div className="w-64">
                     <Typography text={item.name} type="name" size="normal" />
                     <Typography
-                      text={capitalize(item.description || "")}
+                      text={`${item.email} - ${getStatus(item.status)}`}
                       type="muted"
                       size="small"
                     />
                   </div>
                 </ListItemAvatar>
-                <div className="w-16">
-                  <Typography text="Mentors" type="name" size="small" />
-                  <Typography
-                    text={`${item.assignedMentor}/25`}
-                    type="muted"
-                    size="small"
-                  />
-                </div>
-                <Form>
-                  <FormikCheckbox name="checked" value={item._id}>
-                    {""}
-                  </FormikCheckbox>
-                </Form>
-                <AssignListItemControl
-                  handleAssign={() => handleAssign(item._id)}
-                  setEventId={setEventId}
-                  name={item.name}
-                />
+
+                {item.status === Status.Active && (
+                  <>
+                    <div className="w-16">
+                      <Typography text="Languages" type="name" size="small" />
+                      <div className="flex">
+                        {item.languages[0] &&
+                          item.languages.map((item: string, index: number) => (
+                            <span className="mr-1">
+                              <Typography
+                                key={index}
+                                text={`${item}`}
+                                type="muted"
+                                size="small"
+                              />
+                            </span>
+                          ))}
+                      </div>
+                    </div>
+                    <Form>
+                      <FormikCheckbox name="checked" value={item._id}>
+                        {""}
+                      </FormikCheckbox>
+                    </Form>
+                    <AssignListItemControl
+                      handleAssign={() => handleAssign(item._id)}
+                      setEventId={setEventId}
+                      name={item.name}
+                    />
+                  </>
+                )}
               </AssignListWrapper>
             ))}
       </ul>
@@ -190,7 +205,7 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
           disabled={!isChecked}
         >
           <Typography
-            text={`Unassign all selected students?`}
+            text={`Assign all selected students?`}
             type="name"
             size="normal"
           />
@@ -200,4 +215,4 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
   );
 };
 
-export default UnassignClassroomList;
+export default UnassignMentorList;

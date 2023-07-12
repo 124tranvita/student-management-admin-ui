@@ -2,6 +2,7 @@ import * as _ from "lodash";
 import { EventId } from "../../commons/constants";
 import { Mentor } from "../../commons/model";
 import { MentorFormikProps } from "./types";
+import { Status } from "./constants";
 
 type Errors = MentorFormikProps;
 const makeCompareObj = (value: MentorFormikProps) => {
@@ -24,12 +25,23 @@ export const createValidateSubmission = (
 
   if (response && eventId === EventId.Update) {
     /** If mentor role have at least on assigned and change to admin role */
+    const isHasAssignedStudent = response && response.assignedStudent > 0;
+    const isHasAssignedClassroom = response && response.assignedClassroom > 0;
+
     if (
-      response &&
-      response.assignedStudent > 0 &&
-      response.roles !== values.roles
+      (isHasAssignedStudent && response.roles !== values.roles) ||
+      (isHasAssignedClassroom && response.roles !== values.roles)
     ) {
-      errors["roles"] = "Please unassigned all students/classrooms first";
+      errors["roles"] =
+        "Please unassigned all students/classrooms when change to Admin role";
+    }
+
+    if (
+      (isHasAssignedStudent && values.status !== Status.Active) ||
+      (isHasAssignedClassroom && values.status !== Status.Active)
+    ) {
+      errors["status"] =
+        "Please unassigned all students/classrooms when change to Inactive";
     }
 
     /** If there any change on update */

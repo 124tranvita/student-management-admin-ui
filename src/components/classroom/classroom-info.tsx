@@ -17,6 +17,16 @@ const ClassroomInfo: FC<ClassroomInfoProps> = ({ classroom }) => {
           type="description"
         />
       </div>
+      <div className="mb-6">
+        <Typography
+          text={`Assigned Mentors: ${classroom.assignedMentor}/6`}
+          type="muted"
+        />
+        <Typography
+          text={`Assigned students: ${classroom.assignedStudent}/25`}
+          type="muted"
+        />
+      </div>
       {classroom.languages[0] &&
         classroom.languages.map((item: string, index: number) => (
           <HashDiv key={index} value={item} />

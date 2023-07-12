@@ -20,6 +20,7 @@ import {
   serializedAssignResponseArray,
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 type Props = {
   mentorId: string;
@@ -29,26 +30,21 @@ type FormikProps = {
   checked: string[];
 };
 
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
-
 const UnassignStudentList: FC<Props> = ({ mentorId }) => {
   const [records, setRecords] = useState<Student[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(25);
   const [eventId, setEventId] = useState<EventId>(EventId.Init);
 
+  const { signinToken } = useAuthContext();
   const { callApi, response, isLoading, error } = useCallApi<Student[]>([]);
-
-  console.log({ response });
-  console.log({ assignPanel: error });
 
   /** Call API at init */
   useEffect(() => {
     callApi(`student/unassign?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -67,7 +63,6 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
           response.data,
           "student"
         );
-        console.log({ updated });
         return setRecords(updated as Student[]);
       }
     }
@@ -77,13 +72,13 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
   /** handle unassign one student per request */
   const handleAssign = useCallback((value: string) => {
     const data = {
-      studentIds: value.split(","),
+      selectedIds: value.split(","),
     };
 
     callApi(`assign/mentor/assign-student/${mentorId}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -96,13 +91,13 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
   /** handle unassing multiple students per request */
   const handleAssignAll = useCallback((values: FormikProps) => {
     const data = {
-      studentIds: values.checked,
+      selectedIds: values.checked,
     };
 
     callApi(`assign/mentor/assign-student/${mentorId}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -143,14 +138,6 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
     return <NoAssign content="All students are assigned" />;
   }
 
-  // if (error) {
-  //   return (
-  //     <>
-  //       {/* <h1>{response.data.message}</h1> */}
-  //     </>
-  //   );
-  // }
-
   return (
     <FormikContext.Provider value={formikBag}>
       <ul className="h-90per overflow-auto">
@@ -180,12 +167,12 @@ const UnassignStudentList: FC<Props> = ({ mentorId }) => {
                   />
                 </div>
                 <Form>
-                  <FormikCheckbox name="checked" value={item.id}>
+                  <FormikCheckbox name="checked" value={item._id}>
                     {""}
                   </FormikCheckbox>
                 </Form>
                 <AssignListItemControl
-                  handleAssign={() => handleAssign(item.id)}
+                  handleAssign={() => handleAssign(item._id)}
                   setEventId={setEventId}
                   name={item.name}
                 />

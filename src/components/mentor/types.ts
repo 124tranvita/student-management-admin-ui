@@ -22,6 +22,6 @@ export const mentorFormikInitial: MentorFormikProps = {
   education: "1",
   specialized: "",
   avatar: "https://cdn-icons-png.flaticon.com/512/4128/4128405.png",
-  roles: "admin",
-  status: "Active",
+  roles: "mentor",
+  status: "1",
 };

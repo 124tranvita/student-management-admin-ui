@@ -20,6 +20,8 @@ import {
 import * as Constants from "../../commons/constants";
 import useCallApi from "../../hooks/useCallApi";
 import usePagination from "../../hooks/usePagination";
+import useTitle from "../../hooks/useTitle";
+import { useUserContext } from "../../hooks/useUserContext";
 import MentorList from "./mentor-list";
 import { createValidationSchema } from "./validatation-schema";
 import { MentorFormikProps, mentorFormikInitial } from "./types";
@@ -27,31 +29,26 @@ import CreateForm from "./create-form";
 import MentorInfo from "./mentor-info";
 import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
-import useTitle from "../../hooks/useTitle";
 import NoItem from "./no-item";
-import { Role } from "./constants";
-
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
-
-// import mentors from "../../assets/dev/mentors";
+import { Role, Status } from "./constants";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 const Mentor: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [mentor, setMentor] = useState<Mentor>();
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(5);
+  const [limit, setLimit] = useState<number>(Constants.PAGE_LIMIT);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
+  const { signinToken } = useAuthContext();
+  const { user } = useUserContext();
   const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<Mentor[] | Mentor>(
     [] || mentorInitial
   );
 
-  console.log({ response });
-  console.log({ response });
   const { paginationRange } = usePagination({
     limit,
     grossCnt: response.grossCnt || 0,
@@ -60,10 +57,10 @@ const Mentor: FC = () => {
   /** Get mentor list at init */
   useEffect(() => {
     setTitle("Mentors");
-    callApi(`mentor?id=648ddf96e34aa232e537b439&page=${page}&limit=${limit}`, {
+    callApi(`mentor?id=${user.sub}&page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,7 +106,7 @@ const Mentor: FC = () => {
       languages: values.languages.replace(/' '/g, "").split(","),
       education: values.education,
       specialized: values.specialized,
-      status: "Active",
+      status: Status.Active,
       avatar: values.avatar,
       roles: values.roles,
     };
@@ -117,7 +114,7 @@ const Mentor: FC = () => {
     callApi("mentor", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -143,7 +140,7 @@ const Mentor: FC = () => {
     callApi(`mentor/${values.id}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -228,7 +225,7 @@ const Mentor: FC = () => {
     callApi(`mentor/${mentorId}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -240,7 +237,7 @@ const Mentor: FC = () => {
     callApi(`mentor?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     setPage(page);
@@ -289,11 +286,12 @@ const Mentor: FC = () => {
         {mentor && (
           <>
             <MentorInfo mentor={mentor} />
-            {mentor.roles === Role.Mentor && (
-              <>
-                <AssignPanel mentor={mentor} />
-              </>
-            )}
+            {mentor.roles === Role.Mentor &&
+              mentor.status === Status.Active && (
+                <>
+                  <AssignPanel mentor={mentor} />
+                </>
+              )}
           </>
         )}
       </div>
@@ -319,6 +317,7 @@ const Mentor: FC = () => {
             </>
           )}
           <AbsContainer variant="top-right">
+            <Buttons.ReloadButton />
             {isLoading && eventId === Constants.EventId.Add ? (
               <div className="absolute top-4 right-1">
                 <Buttons.ButtonLoader variant="primary" />

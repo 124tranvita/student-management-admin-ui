@@ -1,11 +1,11 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Form, FormikContext, useFormik } from "formik";
-import { Classroom, Student } from "../../commons/model";
+import { AssignClassroomMentor } from "../../commons/model";
 import {
   Typography,
   ListItemAvatar,
   AssignListWrapper,
-  AssignListItemControl,
+  UnAssignListItemControl,
   FormikCheckbox,
   ComponentLoader,
   NoAssign,
@@ -16,32 +16,36 @@ import { EventId } from "../../commons/constants";
 import {
   capitalize,
   isResponseSuccessfully,
-  serializedAssignResponseArray,
+  serializedDeleteResponseArray,
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
 import { useAuthContext } from "../../hooks/useAuthContext";
 
 type Props = {
-  mentorId: string;
+  studentId: string;
 };
 
 type FormikProps = {
   checked: string[];
 };
 
-const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
-  const [records, setRecords] = useState<Classroom[]>([]);
+const AssignedClassroomList: FC<Props> = ({ studentId }) => {
+  const [records, setRecords] = useState<AssignClassroomMentor[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(25);
   const [eventId, setEventId] = useState<EventId>(EventId.Init);
 
   const { signinToken } = useAuthContext();
-  const { callApi, response, isLoading, error } = useCallApi<Classroom[]>([]);
+  const { callApi, response, isLoading, error } = useCallApi<
+    AssignClassroomMentor[]
+  >([]);
+
+  console.log({ response });
 
   /** Call API at init */
   useEffect(() => {
     callApi(
-      `classroom/unassign-mentor?id=${mentorId}&page=${page}&limit=${limit}`,
+      `assign/mentor/classroom-to-mentor?id=${studentId}&page=${page}&limit=${limit}`,
       {
         method: "GET",
         headers: {
@@ -59,25 +63,21 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
         setRecords(records.concat(response.data));
       }
 
-      if (eventId === EventId.Assign) {
-        const updated = serializedAssignResponseArray(
-          records,
-          response.data,
-          "classroom"
-        );
-        return setRecords(updated as Classroom[]);
+      if (eventId === EventId.Unassign) {
+        const updated = serializedDeleteResponseArray(records, response.data);
+        return setRecords(updated as AssignClassroomMentor[]);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, response]);
 
-  /** Handle assign one classroom per request */
-  const handleAssign = useCallback((value: string) => {
+  /** handle unassign one student per request */
+  const handleUnAssign = useCallback((value: string) => {
     const data = {
-      selectedIds: value.split(","),
+      assignedIds: value.split(","),
     };
 
-    callApi(`assign/mentor/assign-classroom/${mentorId}`, {
+    callApi(`assign/mentor/unassign-classroom/${studentId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${signinToken.accessToken}`,
@@ -86,17 +86,17 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
       body: JSON.stringify(data),
     });
 
-    setEventId(EventId.Assign);
+    setEventId(EventId.Unassign);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Handle assign multiple students per request */
-  const handleAssignAll = useCallback((values: FormikProps) => {
+  /** handle unassing multiple students per request */
+  const handleUnAssignAll = useCallback((values: FormikProps) => {
     const data = {
-      selectedIds: values.checked,
+      assignedIds: values.checked,
     };
 
-    callApi(`assign/mentor/assign-classroom/${mentorId}`, {
+    callApi(`assign/mentor/unassign-classroom/${studentId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${signinToken.accessToken}`,
@@ -105,14 +105,15 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
       body: JSON.stringify(data),
     });
 
-    setEventId(EventId.Assign);
+    setEventId(EventId.Unassign);
+    // alert(JSON.stringify(values, null, 2));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /** Formik */
   const formikBag = useFormik({
     initialValues: { checked: [] } as FormikProps,
-    onSubmit: (values) => handleAssignAll(values),
+    onSubmit: (values) => handleUnAssignAll(values),
   });
 
   /** Handle submit */
@@ -137,7 +138,7 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
   }
 
   if (records && records.length === 0) {
-    return <NoAssign content="All classrooms are assigned" />;
+    return <NoAssign content="Mentor has no assinged classroom" />;
   }
 
   return (
@@ -146,7 +147,7 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
         {records &&
           records.length > 0 &&
           records
-            .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
+            .sort((a, b) => (isBefore(a.assignedAt, b.assignedAt) ? 1 : -1))
             .slice(0, limit)
             .map((item, index) => (
               <AssignListWrapper key={index}>
@@ -161,20 +162,28 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
                   </div>
                 </ListItemAvatar>
                 <div className="w-16">
-                  <Typography text="Mentors" type="name" size="small" />
-                  <Typography
-                    text={`${item.assignedMentor}/25`}
-                    type="muted"
-                    size="small"
-                  />
+                  <Typography text="Languages" type="name" size="small" />
+                  <div className="flex">
+                    {item.languages[0] &&
+                      item.languages.map((item: string, index: number) => (
+                        <span className="mr-1">
+                          <Typography
+                            key={index}
+                            text={`${item}`}
+                            type="muted"
+                            size="small"
+                          />
+                        </span>
+                      ))}
+                  </div>
                 </div>
                 <Form>
                   <FormikCheckbox name="checked" value={item._id}>
                     {""}
                   </FormikCheckbox>
                 </Form>
-                <AssignListItemControl
-                  handleAssign={() => handleAssign(item._id)}
+                <UnAssignListItemControl
+                  handleUnAssign={() => handleUnAssign(item._id)}
                   setEventId={setEventId}
                   name={item.name}
                 />
@@ -184,13 +193,13 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
       <div>
         <ConfirmModal
           title="Confirm"
-          label="Assign all"
+          label="Unassign all"
           handleSubmit={handleSubmit}
           setEventId={setEventId}
           disabled={!isChecked}
         >
           <Typography
-            text={`Unassign all selected students?`}
+            text={`Unassign all selected classrooms?`}
             type="name"
             size="normal"
           />
@@ -200,4 +209,4 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
   );
 };
 
-export default UnassignClassroomList;
+export default AssignedClassroomList;

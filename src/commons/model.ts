@@ -37,8 +37,8 @@ export type Classroom = {
   cover: string;
   mentors?: Mentor[];
   students?: Student[];
-  assginedMentor: number;
-  assginedStudent: number;
+  assignedMentor: number;
+  assignedStudent: number;
 };
 
 export const classroomInitial: Classroom = {
@@ -50,12 +50,12 @@ export const classroomInitial: Classroom = {
   cover: "",
   mentors: [],
   students: [],
-  assginedMentor: 0,
-  assginedStudent: 0,
+  assignedMentor: 0,
+  assignedStudent: 0,
 };
 
 export type Student = {
-  id: string;
+  _id: string;
   studentId: string;
   name: string;
   doB: string;
@@ -72,7 +72,7 @@ export type Student = {
 };
 
 export const studentInitial: Student = {
-  id: "",
+  _id: "",
   studentId: "",
   name: "",
   doB: "",
@@ -112,7 +112,7 @@ export type AssignStudentMentor = {
   student: Student;
 };
 
-export const assignStudentMentorInitial = {
+export const assignStudentMentorInitial: AssignStudentMentor = {
   id: "",
   assignedAt: "",
   studentId: "",
@@ -125,25 +125,55 @@ export const assignStudentMentorInitial = {
 };
 
 export type AssignClassroomMentor = {
-  id: string;
+  _id: string;
   assignedAt: string;
-  classroomName: string;
-  classroomDesc: string;
-  classroomLanguages: string[];
-  classroomCover: string;
-  mentorName: string;
+  name: string;
+  description?: string;
+  languages: string[];
+  cover: string;
+  assignee: string;
+  email?: string;
+  status?: string;
+  avatar?: string;
   mentor: Mentor;
   classroom: Classroom;
 };
 
-export const assignClassroomMentorInitial = {
-  id: "",
+export const assignClassroomMentorInitial: AssignClassroomMentor = {
+  _id: "",
   assignedAt: "",
-  classroomName: "",
-  classroomDesc: "",
-  classroomLanguages: [],
-  classroomCover: "",
-  mentorName: "",
+  name: "",
+  description: "",
+  languages: [],
+  cover: "",
+  assignee: "",
+  email: "",
+  status: "",
+  avatar: "",
   mentor: mentorInitial,
   classroom: classroomInitial,
+};
+
+export type SigninToken = {
+  accessToken: string;
+  refreshToken: string;
+};
+
+export const signinTokenInitial: SigninToken = {
+  accessToken: "",
+  refreshToken: "",
+};
+
+export type User = {
+  sub: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+};
+
+export const userInitial: User = {
+  sub: "",
+  email: "",
+  iat: 0,
+  exp: 0,
 };

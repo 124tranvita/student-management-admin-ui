@@ -1,5 +1,6 @@
 import * as _ from "lodash";
 import { Response } from "./model";
+import { ResponseResult } from "./constants";
 
 export const classNames = (
   ...classes: (false | null | undefined | string)[]
@@ -13,14 +14,16 @@ export const compareObjectId = (id1: string, id2: string) => {
 };
 
 export const isResponseSuccessfully = <T>(response: Response<T>) => {
-  return response.status === "success";
+  return _.isEqual(response.status, ResponseResult.success);
 };
 
 export const isNotNullData = <T>(data: T) => {
-  return JSON.stringify(data) !== "{}";
+  return !_.isEmpty(data);
 };
 
 export const capitalize = (value: string) => {
+  if (!value) return "";
+
   const firstChar = value.slice(0, 1);
 
   return firstChar.toUpperCase() + value.slice(1);

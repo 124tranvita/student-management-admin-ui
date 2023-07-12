@@ -8,3 +8,11 @@ export enum EventId {
   Unassign = "unassign",
   None = "",
 }
+
+export const PAGE_LIMIT = 10;
+
+export enum ResponseResult {
+  success = "success",
+  failed = "failed",
+  error = "error",
+}

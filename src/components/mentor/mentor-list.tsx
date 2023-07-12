@@ -8,7 +8,7 @@ import {
 import { ListItemControl } from "../../commons/components/list-item";
 import { isBefore } from "../../commons/date-func";
 import { EventId } from "../../commons/constants";
-import { capitalize } from "../../commons/utils";
+import { capitalize, getStatus } from "../../commons/utils";
 import UpdateForm from "./update-form";
 
 type Props = {
@@ -47,7 +47,7 @@ const MentorList: FC<Props> = ({
                 <div className="w-64">
                   <Typography text={item.name} type="name" size="normal" />
                   <Typography
-                    text={`${item.email} - ${item.status}`}
+                    text={`${item.email} - ${getStatus(item.status)}`}
                     type="muted"
                     size="small"
                   />
@@ -66,6 +66,9 @@ const MentorList: FC<Props> = ({
                 handleRemove={() => handleRemove(item._id)}
                 setEventId={setEventId}
                 name={item.name}
+                disabled={
+                  item.assignedClassroom > 0 || item.assignedStudent > 0
+                }
               >
                 <UpdateForm />
               </ListItemControl>

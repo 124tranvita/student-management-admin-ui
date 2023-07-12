@@ -61,6 +61,7 @@ type FormModalProps = {
   children: React.ReactNode;
   handleSubmit?: () => void;
   type?: "add" | "update" | "assign" | "delete" | "unassign";
+  disabled?: boolean;
 };
 
 type FormModalWithEventProps = {
@@ -129,7 +130,7 @@ export const AddFormModal: React.FC<
 /** Update form dialog modal */
 export const UpdateFormModal: React.FC<
   FormModalProps & FormModalWithEventProps
-> = ({ children, title, handleSubmit, setEventId }) => {
+> = ({ children, title, handleSubmit, setEventId, disabled }) => {
   const formikBag = useFormikContext();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -140,6 +141,7 @@ export const UpdateFormModal: React.FC<
         label="Update"
         variant="primary"
         type="button"
+        disabled={disabled}
       >
         <EditIcon />
       </RoundedIconButton>
@@ -194,12 +196,16 @@ export const UpdateFormModal: React.FC<
 /** Delete form dialog modal */
 export const DeleteFormModal: React.FC<
   FormModalProps & FormModalWithEventProps
-> = ({ children, title, handleSubmit, setEventId }) => {
+> = ({ children, title, handleSubmit, setEventId, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const RenderedButton = (
     <>
-      <RoundedIconButton variant="danger" onClick={openModal}>
+      <RoundedIconButton
+        variant="danger"
+        onClick={openModal}
+        disabled={disabled}
+      >
         <DeleteIcon />
       </RoundedIconButton>
     </>

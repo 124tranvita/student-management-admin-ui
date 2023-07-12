@@ -19,6 +19,7 @@ import {
   serializedDeleteResponseArray,
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 type Props = {
   mentorId: string;
@@ -28,20 +29,16 @@ type FormikProps = {
   checked: string[];
 };
 
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
-
 const AssignedStudentList: FC<Props> = ({ mentorId }) => {
   const [records, setRecords] = useState<AssignStudentMentor[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(25);
   const [eventId, setEventId] = useState<EventId>(EventId.Init);
 
+  const { signinToken } = useAuthContext();
   const { callApi, response, isLoading, error } = useCallApi<
     AssignStudentMentor[]
   >([]);
-
-  console.log({ response });
 
   /** Call API at init */
   useEffect(() => {
@@ -50,7 +47,7 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${refreshToken}`,
+          Authorization: `Bearer ${signinToken.accessToken}`,
         },
       }
     );
@@ -81,7 +78,7 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
     callApi(`assign/mentor/unassign-student/${mentorId}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -100,7 +97,7 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
     callApi(`assign/mentor/unassign-student/${mentorId}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),

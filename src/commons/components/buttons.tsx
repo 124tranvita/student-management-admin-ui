@@ -1,7 +1,7 @@
 import React, { ButtonHTMLAttributes, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { classNames } from "../utils";
-import { BackIcon } from "./icons";
+import { BackIcon, ReloadIcon } from "./icons";
 
 enum Variant {
   Primary = "primary",
@@ -15,8 +15,10 @@ const VariantMap = {
   [Variant.Danger]: "bg-red-100 text-red-900 hover:bg-red-200",
 };
 
+const Disabled = "bg-slate-200 text-slate-400 hover:bg-slate-200";
+
 type ButtonProps = {
-  label?: string;
+  label?: string | React.ReactNode;
   variant: "primary" | "success" | "danger";
   onClick?: () => void;
   children?: React.ReactNode;
@@ -82,15 +84,17 @@ export const RoundedIconButton: React.FC<ButtonProps> = ({
   type = "button",
   variant,
   onClick,
+  disabled = false,
 }) => {
   return (
     <button
       type={type}
       className={classNames(
         "inline-flex justify-center items-center rounded-full border border-transparent text-3xl font-extrabold focus:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-        VariantMap[variant]
+        disabled ? Disabled : VariantMap[variant]
       )}
       onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>
@@ -170,5 +174,20 @@ export const BackButton: React.FC<{ path?: string }> = ({ path }) => {
     >
       <BackIcon width="36" height="36" />
     </button>
+  );
+};
+
+export const ReloadButton: React.FC = () => {
+  const handleRefreshPage = () => {
+    window.location.reload();
+  };
+  return (
+    <>
+      <Button
+        variant="primary"
+        label={<ReloadIcon />}
+        onClick={handleRefreshPage}
+      />
+    </>
   );
 };

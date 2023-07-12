@@ -1,7 +1,7 @@
 import Mentor from "../components/mentor";
 import Student from "../components/student";
 import Classroom from "../components/classroom";
-import Assign from "../components/assign";
+import { Signin } from "../components/auth";
 import Page from "./container";
 
-export { Mentor, Student, Classroom, Assign, Page };
+export { Mentor, Student, Classroom, Signin, Page };

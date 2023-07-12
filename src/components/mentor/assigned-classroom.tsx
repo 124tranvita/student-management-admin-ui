@@ -19,6 +19,7 @@ import {
   serializedDeleteResponseArray,
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 type Props = {
   mentorId: string;
@@ -28,20 +29,16 @@ type FormikProps = {
   checked: string[];
 };
 
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
-
 const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
   const [records, setRecords] = useState<AssignClassroomMentor[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(25);
   const [eventId, setEventId] = useState<EventId>(EventId.Init);
 
+  const { signinToken } = useAuthContext();
   const { callApi, response, isLoading, error } = useCallApi<
     AssignClassroomMentor[]
   >([]);
-
-  console.log({ response });
 
   /** Call API at init */
   useEffect(() => {
@@ -50,7 +47,7 @@ const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${refreshToken}`,
+          Authorization: `Bearer ${signinToken.accessToken}`,
         },
       }
     );
@@ -81,7 +78,7 @@ const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
     callApi(`assign/mentor/unassign-classroom/${mentorId}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -100,7 +97,7 @@ const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
     callApi(`assign/mentor/unassign-classroom/${mentorId}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -152,15 +149,11 @@ const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
             .slice(0, limit)
             .map((item, index) => (
               <AssignListWrapper key={index}>
-                <ListItemAvatar img={item.classroomCover}>
+                <ListItemAvatar img={item.cover}>
                   <div className="w-64">
+                    <Typography text={item.name} type="name" size="normal" />
                     <Typography
-                      text={item.classroomName}
-                      type="name"
-                      size="normal"
-                    />
-                    <Typography
-                      text={capitalize(item.classroomDesc || "")}
+                      text={capitalize(item.description || "")}
                       type="muted"
                       size="small"
                     />
@@ -169,30 +162,27 @@ const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
                 <div className="w-16">
                   <Typography text="Languages" type="name" size="small" />
                   <div className="flex">
-                    {item.classroomLanguages[0] &&
-                      item.classroomLanguages.map(
-                        (item: string, index: number) => (
-                          <span className="mr-1">
-                            <Typography
-                              key={index}
-                              text={`${item}`}
-                              type="muted"
-                              size="small"
-                            />
-                          </span>
-                        )
-                      )}
+                    {item.languages[0] &&
+                      item.languages.map((item: string, index: number) => (
+                        <span className="mr-1" key={index}>
+                          <Typography
+                            text={`${item}`}
+                            type="muted"
+                            size="small"
+                          />
+                        </span>
+                      ))}
                   </div>
                 </div>
                 <Form>
-                  <FormikCheckbox name="checked" value={item.id}>
+                  <FormikCheckbox name="checked" value={item._id}>
                     {""}
                   </FormikCheckbox>
                 </Form>
                 <UnAssignListItemControl
-                  handleUnAssign={() => handleUnAssign(item.id)}
+                  handleUnAssign={() => handleUnAssign(item._id)}
                   setEventId={setEventId}
-                  name={item.classroomName}
+                  name={item.name}
                 />
               </AssignListWrapper>
             ))}

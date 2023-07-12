@@ -60,6 +60,7 @@ type ListItemControlProps = {
   handleRemove: () => void;
   setEventId: (value: EventId) => void;
   name: string;
+  disabled?: boolean;
 };
 
 export const ListItemControl: FC<ListItemControlProps> = ({
@@ -68,6 +69,7 @@ export const ListItemControl: FC<ListItemControlProps> = ({
   handleUpdate,
   setEventId,
   name,
+  disabled,
 }) => {
   return (
     <div className="flex justify-start items-center ">
@@ -76,6 +78,7 @@ export const ListItemControl: FC<ListItemControlProps> = ({
           title={`Update ${name}`}
           handleSubmit={handleUpdate}
           setEventId={setEventId}
+          disabled={disabled}
         >
           {children}
         </UpdateFormModal>
@@ -85,6 +88,7 @@ export const ListItemControl: FC<ListItemControlProps> = ({
           title="Confirm"
           handleSubmit={handleRemove}
           setEventId={setEventId}
+          disabled={disabled}
         >
           <Typography text={`Delete "${name}"?`} type="name" size="normal" />
         </DeleteFormModal>

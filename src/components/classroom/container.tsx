@@ -20,6 +20,8 @@ import {
 import useCallApi from "../../hooks/useCallApi";
 import * as Constants from "../../commons/constants";
 import usePagination from "../../hooks/usePagination";
+import useTitle from "../../hooks/useTitle";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import ClassroomList from "./classroom-list";
 import { createValidationSchema } from "./validatation-schema";
 import { ClassroomFormikProps, classroomFormikInitial } from "./types";
@@ -28,22 +30,17 @@ import ClassroomInfo from "./classroom-info";
 import { createValidateSubmission } from "./validate-submission";
 import AssignPanel from "./assign-panel";
 import NoItem from "./no-item";
-import useTitle from "../../hooks/useTitle";
-
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
-
-// import mentors from "../../assets/dev/mentors";
 
 const Classroom: FC = () => {
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [classroom, setClassroom] = useState<Classroom>();
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(12);
+  const [limit, setLimit] = useState<number>(Constants.PAGE_LIMIT);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
+  const { signinToken } = useAuthContext();
   const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<
     Classroom[] | Classroom
@@ -60,7 +57,7 @@ const Classroom: FC = () => {
     callApi(`classroom?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,7 +109,7 @@ const Classroom: FC = () => {
     callApi("classroom", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -134,7 +131,7 @@ const Classroom: FC = () => {
     callApi(`classroom/${values.id}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -215,7 +212,7 @@ const Classroom: FC = () => {
     callApi(`classroom/${mentorId}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -227,7 +224,7 @@ const Classroom: FC = () => {
     callApi(`classroom?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     setPage(page);
@@ -278,7 +275,7 @@ const Classroom: FC = () => {
         {classroom && (
           <>
             <ClassroomInfo classroom={classroom} />
-            {/* <AssignPanel mentor={mentor} /> */}
+            <AssignPanel classroom={classroom} />
           </>
         )}
       </div>
@@ -304,6 +301,7 @@ const Classroom: FC = () => {
             </>
           )}
           <AbsContainer variant="top-right">
+            <Buttons.ReloadButton />
             {isLoading && eventId === Constants.EventId.Add ? (
               <div className="absolute top-4 right-1">
                 <Buttons.ButtonLoader variant="primary" />

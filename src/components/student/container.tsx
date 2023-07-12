@@ -19,32 +19,29 @@ import {
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
 import * as Constants from "../../commons/constants";
+import { dateFormatter } from "../../commons/time-func";
+import usePagination from "../../hooks/usePagination";
+import useTitle from "../../hooks/useTitle";
 import StudentList from "./student-list";
 import { createValidationSchema } from "./validatation-schema";
 import { StudentFormikProps, studentFormikInitial } from "./types";
 import CreateForm from "./create-form";
-import usePagination from "../../hooks/usePagination";
-import StudentInfo from "./student-info";
-import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
+import StudentInfo from "./student-info";
 import NoItem from "./no-item";
-import { dateFormatter } from "../../commons/time-func";
-import useTitle from "../../hooks/useTitle";
-
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
-
-// import mentors from "../../assets/dev/mentors";
+import AssignPanel from "./assign-panel";
+import { useAuthContext } from "../../hooks/useAuthContext";
 
 const Student: FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [student, setStudent] = useState<Student>();
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(9);
+  const [limit, setLimit] = useState<number>(Constants.PAGE_LIMIT);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
+  const { signinToken } = useAuthContext();
   const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<
     Student[] | Student
@@ -61,7 +58,7 @@ const Student: FC = () => {
     callApi(`student?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -119,7 +116,7 @@ const Student: FC = () => {
     callApi("student", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -145,7 +142,7 @@ const Student: FC = () => {
     callApi(`student/${values.id}`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -170,7 +167,7 @@ const Student: FC = () => {
   const initialValues: StudentFormikProps = useMemo(() => {
     if (student && eventId === Constants.EventId.Update)
       return {
-        id: student.id,
+        id: student._id,
         studentId: student.studentId,
         name: student.name,
         doB: dateFormatter(student.doB, "yyyy-MM-dd"),
@@ -221,7 +218,7 @@ const Student: FC = () => {
 
   /** Handle select mentor */
   const handleSelect = (value: string) => {
-    const student = students.find((item) => item.id === value);
+    const student = students.find((item) => item._id === value);
     if (student) {
       setStudent(student);
     }
@@ -232,7 +229,7 @@ const Student: FC = () => {
     callApi(`student/${mentorId}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -244,7 +241,7 @@ const Student: FC = () => {
     callApi(`student?page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     setPage(page);
@@ -292,8 +289,11 @@ const Student: FC = () => {
         />
         {student && (
           <>
-            <StudentInfo student={student} />
-            {/* <AssignPanel mentor={mentor} /> */}
+            <StudentInfo
+              student={student}
+              accessToken={signinToken.accessToken}
+            />
+            <AssignPanel student={student} />
           </>
         )}
       </div>
@@ -309,7 +309,7 @@ const Student: FC = () => {
             <>
               <StudentList
                 students={students}
-                selectedId={student ? student.id : ""}
+                selectedId={student ? student._id : ""}
                 limit={limit}
                 handleUpdate={handleUpdate}
                 handleRemove={handleRemove}
@@ -319,6 +319,7 @@ const Student: FC = () => {
             </>
           )}
           <AbsContainer variant="top-right">
+            <Buttons.ReloadButton />
             {isLoading && eventId === Constants.EventId.Add ? (
               <div className="absolute top-4 right-1">
                 <Buttons.ButtonLoader variant="primary" />
