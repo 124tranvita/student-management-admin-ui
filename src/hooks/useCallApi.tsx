@@ -1,17 +1,17 @@
 import { useReducer } from "react";
-import { Response } from "../commons/model";
+import { Response, Error } from "../commons/model";
 import * as Constants from "./constants";
 
 type StateType<T> = {
   isLoading: boolean;
-  error: object | null;
+  error: Error | null;
   response: Response<T>;
 };
 
 type ActionType<T> = {
   type: Constants.Types;
   payload: Response<T>;
-  error: object | null;
+  error: Error | null;
 };
 
 const useCallApiReducer = <T,>(

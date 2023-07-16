@@ -1,7 +1,3 @@
-import Mentor from "../components/mentor";
-import Student from "../components/student";
-import Classroom from "../components/classroom";
-import { Signin } from "../components/auth";
-import Page from "./container";
+import { publicPages, privatePages } from "./route";
 
-export { Mentor, Student, Classroom, Signin, Page };
+export { publicPages, privatePages };

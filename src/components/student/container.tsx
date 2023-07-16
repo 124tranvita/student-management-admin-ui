@@ -12,6 +12,7 @@ import {
 } from "../../commons/components";
 import { Student, studentInitial } from "../../commons/model";
 import {
+  isHttpStatusCode401,
   isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
@@ -20,8 +21,10 @@ import {
 import useCallApi from "../../hooks/useCallApi";
 import * as Constants from "../../commons/constants";
 import { dateFormatter } from "../../commons/time-func";
+import { statusCode401Handler } from "../../commons/errors-handler";
 import usePagination from "../../hooks/usePagination";
 import useTitle from "../../hooks/useTitle";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import StudentList from "./student-list";
 import { createValidationSchema } from "./validatation-schema";
 import { StudentFormikProps, studentFormikInitial } from "./types";
@@ -30,7 +33,6 @@ import { createValidateSubmission } from "./validate-submission";
 import StudentInfo from "./student-info";
 import NoItem from "./no-item";
 import AssignPanel from "./assign-panel";
-import { useAuthContext } from "../../hooks/useAuthContext";
 
 const Student: FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -41,7 +43,7 @@ const Student: FC = () => {
     Constants.EventId.Init
   );
 
-  const { signinToken } = useAuthContext();
+  const { signinToken, dispatchAuth } = useAuthContext();
   const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<
     Student[] | Student
@@ -62,11 +64,13 @@ const Student: FC = () => {
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [signinToken.accessToken]);
 
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
+      if (eventId === Constants.EventId.RenewToken) return;
+
       if (eventId === Constants.EventId.Add) {
         return setStudents(students.concat(response.data));
       }
@@ -83,9 +87,14 @@ const Student: FC = () => {
       }
 
       return setStudents(response.data as Student[]);
+    } else {
+      if (error && isHttpStatusCode401(error)) {
+        setEventId(Constants.EventId.RenewToken);
+        statusCode401Handler(signinToken.refreshToken, dispatchAuth);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
+  }, [response, error]);
 
   /** Set select the first item on list when init */
   useEffect(() => {

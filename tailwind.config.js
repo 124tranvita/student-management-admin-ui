@@ -19,6 +19,9 @@ export default {
         "60vw": "60vw",
         "80vw": "80vw",
       },
+      backgroundImage: {
+        "signin-pattern": "url('/src/assets/images/sign-in-bg.jpg')",
+      },
     },
   },
   plugins: [],

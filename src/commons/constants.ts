@@ -6,6 +6,7 @@ export enum EventId {
   Paging = "paging",
   Assign = "assign",
   Unassign = "unassign",
+  RenewToken = "renewToken",
   None = "",
 }
 
@@ -15,4 +16,9 @@ export enum ResponseResult {
   success = "success",
   failed = "failed",
   error = "error",
+}
+
+export enum HttpStatusCode {
+  code401 = 401,
+  code404 = 404,
 }

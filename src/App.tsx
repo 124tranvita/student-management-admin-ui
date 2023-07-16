@@ -1,22 +1,45 @@
-import { Route, Routes } from "react-router-dom";
-import { Classroom, Mentor, Student, Signin, Page } from "./pages";
-import { AuthContextProvider } from "./context/AuthContext";
-import { UserContextProvider } from "./context/UserContext";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { LoginInfContextProvider } from "./context/LoginInfContext";
+import { useAuthContext } from "./hooks/useAuthContext";
+import { publicPages, privatePages } from "./pages";
+import { Pages } from "./pages/route";
 
 function App() {
+  const { signinToken } = useAuthContext();
+
   return (
     <div>
-      <AuthContextProvider>
-        <UserContextProvider>
-          <Routes>
-            <Route path="/" element={<Page />} />
-            <Route path="/mentor" element={<Mentor />} />
-            <Route path="/classroom" element={<Classroom />} />
-            <Route path="/student" element={<Student />} />
-            <Route path="/signin" element={<Signin />} />
-          </Routes>
-        </UserContextProvider>
-      </AuthContextProvider>
+      <LoginInfContextProvider>
+        <Routes>
+          {publicPages.map((page: Pages, index: number) => (
+            <Route
+              key={index}
+              path={page.path}
+              element={
+                !signinToken.accessToken ? (
+                  <>{page.page}</>
+                ) : (
+                  <Navigate to="/" />
+                )
+              }
+            />
+          ))}
+
+          {privatePages.map((page, index: number) => (
+            <Route
+              key={index}
+              path={page.path}
+              element={
+                signinToken.accessToken ? (
+                  <>{page.page}</>
+                ) : (
+                  <Navigate to="/signin" />
+                )
+              }
+            />
+          ))}
+        </Routes>
+      </LoginInfContextProvider>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import * as _ from "lodash";
-import { Response } from "./model";
-import { ResponseResult } from "./constants";
+import { Error, Response } from "./model";
+import { HttpStatusCode, ResponseResult } from "./constants";
 
 export const classNames = (
   ...classes: (false | null | undefined | string)[]
@@ -15,6 +15,10 @@ export const compareObjectId = (id1: string, id2: string) => {
 
 export const isResponseSuccessfully = <T>(response: Response<T>) => {
   return _.isEqual(response.status, ResponseResult.success);
+};
+
+export const isHttpStatusCode401 = (error: Error) => {
+  return _.isEqual(error.statusCode, HttpStatusCode.code401);
 };
 
 export const isNotNullData = <T>(data: T) => {
