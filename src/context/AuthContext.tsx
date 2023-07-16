@@ -11,7 +11,7 @@ import * as Constants from "./constants";
 
 type ContextType = {
   signinToken: SigninToken;
-  dispatch: Dispatch<any>;
+  dispatchAuth: Dispatch<any>;
 };
 
 type StateType = {
@@ -25,7 +25,7 @@ type ActionType = {
 
 export const AuthContext = createContext<ContextType>({
   signinToken: signinTokenInitial,
-  dispatch: () => null,
+  dispatchAuth: () => null,
 });
 
 const authReducer = (state: StateType, action: ActionType): StateType => {
@@ -67,7 +67,7 @@ export const AuthContextProvider: FC<Props> = ({ children }) => {
   console.log("AuthContext state: ", state);
 
   return (
-    <AuthContext.Provider value={{ ...state, dispatch }}>
+    <AuthContext.Provider value={{ ...state, dispatchAuth: dispatch }}>
       {children}
     </AuthContext.Provider>
   );

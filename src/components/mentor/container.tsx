@@ -12,16 +12,19 @@ import {
 } from "../../commons/components";
 import { Mentor, mentorInitial } from "../../commons/model";
 import {
+  isHttpStatusCode401,
   isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
   serializedPatchResponse,
 } from "../../commons/utils";
 import * as Constants from "../../commons/constants";
+import { statusCode401Handler } from "../../commons/errors-handler";
 import useCallApi from "../../hooks/useCallApi";
 import usePagination from "../../hooks/usePagination";
 import useTitle from "../../hooks/useTitle";
-import { useUserContext } from "../../hooks/useUserContext";
+import { useLoginInfContext } from "../../hooks/useLoginInfContext";
+import { useAuthContext } from "../../hooks/useAuthContext";
 import MentorList from "./mentor-list";
 import { createValidationSchema } from "./validatation-schema";
 import { MentorFormikProps, mentorFormikInitial } from "./types";
@@ -31,7 +34,6 @@ import AssignPanel from "./assign-panel";
 import { createValidateSubmission } from "./validate-submission";
 import NoItem from "./no-item";
 import { Role, Status } from "./constants";
-import { useAuthContext } from "../../hooks/useAuthContext";
 
 const Mentor: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
@@ -42,8 +44,8 @@ const Mentor: FC = () => {
     Constants.EventId.Init
   );
 
-  const { signinToken } = useAuthContext();
-  const { user } = useUserContext();
+  const { signinToken, dispatchAuth } = useAuthContext();
+  const { loginInf } = useLoginInfContext();
   const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<Mentor[] | Mentor>(
     [] || mentorInitial
@@ -57,18 +59,20 @@ const Mentor: FC = () => {
   /** Get mentor list at init */
   useEffect(() => {
     setTitle("Mentors");
-    callApi(`mentor?id=${user.sub}&page=${page}&limit=${limit}`, {
+    callApi(`mentor?id=${loginInf.sub}&page=${page}&limit=${limit}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${signinToken.accessToken}`,
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [signinToken.accessToken]);
 
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
+      if (eventId === Constants.EventId.RenewToken) return;
+
       if (eventId === Constants.EventId.Add) {
         return setMentors(mentors.concat(response.data));
       }
@@ -85,9 +89,14 @@ const Mentor: FC = () => {
       }
 
       return setMentors(response.data as Mentor[]);
+    } else {
+      if (error && isHttpStatusCode401(error)) {
+        setEventId(Constants.EventId.RenewToken);
+        statusCode401Handler(signinToken.refreshToken, dispatchAuth);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
+  }, [response, error]);
 
   useEffect(() => {
     if (eventId === Constants.EventId.Update) return;

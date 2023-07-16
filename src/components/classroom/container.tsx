@@ -12,14 +12,16 @@ import {
 } from "../../commons/components";
 import { Classroom, classroomInitial } from "../../commons/model";
 import {
+  isHttpStatusCode401,
   isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
   serializedPatchResponse,
 } from "../../commons/utils";
-import useCallApi from "../../hooks/useCallApi";
 import * as Constants from "../../commons/constants";
+import { statusCode401Handler } from "../../commons/errors-handler";
 import usePagination from "../../hooks/usePagination";
+import useCallApi from "../../hooks/useCallApi";
 import useTitle from "../../hooks/useTitle";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import ClassroomList from "./classroom-list";
@@ -40,7 +42,7 @@ const Classroom: FC = () => {
     Constants.EventId.Init
   );
 
-  const { signinToken } = useAuthContext();
+  const { signinToken, dispatchAuth } = useAuthContext();
   const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<
     Classroom[] | Classroom
@@ -50,7 +52,7 @@ const Classroom: FC = () => {
     grossCnt: response.grossCnt || 0,
   });
 
-  console.log({ response });
+  console.log({ error });
   /** Get mentor list at init */
   useEffect(() => {
     setTitle("Classrooms");
@@ -61,11 +63,13 @@ const Classroom: FC = () => {
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [signinToken.accessToken]);
 
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
+      if (eventId === Constants.EventId.RenewToken) return;
+
       if (eventId === Constants.EventId.Add) {
         return setClassrooms(classrooms.concat(response.data));
       }
@@ -82,9 +86,14 @@ const Classroom: FC = () => {
       }
 
       return setClassrooms(response.data as Classroom[]);
+    } else {
+      if (error && isHttpStatusCode401(error)) {
+        setEventId(Constants.EventId.RenewToken);
+        statusCode401Handler(signinToken.refreshToken, dispatchAuth);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
+  }, [response, error]);
 
   useEffect(() => {
     if (

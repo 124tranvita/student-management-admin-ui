@@ -164,16 +164,24 @@ export const signinTokenInitial: SigninToken = {
   refreshToken: "",
 };
 
-export type User = {
+export type LoginInf = {
   sub: string;
   email: string;
   iat?: number;
   exp?: number;
 };
 
-export const userInitial: User = {
+export const loginInfInitial: LoginInf = {
   sub: "",
   email: "",
   iat: 0,
   exp: 0,
+};
+
+export type Error = {
+  statusCode: number;
+  status: string;
+  timestamp: string;
+  path: string;
+  message: string;
 };

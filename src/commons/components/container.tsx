@@ -91,3 +91,12 @@ export const HashDiv: React.FC<Props> = ({ value }) => {
     </span>
   );
 };
+
+/** Full Container */
+export const FullContainer: React.FC<Props> = ({ children }) => {
+  return (
+    <div className="h-screen w-full bg-signin-pattern flex place-items-center justify-center items-center">
+      {children}
+    </div>
+  );
+};

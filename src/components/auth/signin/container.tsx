@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect } from "react";
 import { FormikContext, useFormik } from "formik";
-import { Wrapper, Loader } from "../../../commons/components";
+import { Wrapper, Loader, FullContainer } from "../../../commons/components";
 import { SigninToken, signinTokenInitial } from "../../../commons/model";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import useCallApi from "../../../hooks/useCallApi";
@@ -11,16 +11,12 @@ import { createValidationSchema } from "./validatation-schema";
 import { SigninFormikProps, signinFormikInitial } from "./types";
 import SigninForm from "./signin-form";
 import { useNavigate } from "react-router-dom";
-
-/** TODO: Implement authentication */
-const refreshToken = "dasdasdasdasdas";
-
-// import mentors from "../../assets/dev/mentors";
+import { Button } from "../../../commons/components/buttons";
 
 const Signin: FC = () => {
   const navigate = useNavigate();
   const { setTitle } = useTitle();
-  const { dispatch } = useAuthContext();
+  const { dispatchAuth } = useAuthContext();
 
   const { callApi, response, isLoading, error } =
     useCallApi<SigninToken>(signinTokenInitial);
@@ -39,7 +35,7 @@ const Signin: FC = () => {
       localStorage.setItem("signinToken", JSON.stringify(response.data));
 
       // Set signin token to auth context
-      dispatch({ type: ActionType.ACT_USER_LOGIN, payload: response.data });
+      dispatchAuth({ type: ActionType.ACT_USER_LOGIN, payload: response.data });
 
       navigate("/");
     }
@@ -56,7 +52,6 @@ const Signin: FC = () => {
     callApi("auth/signin", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
@@ -100,12 +95,25 @@ const Signin: FC = () => {
     );
   }
   return (
-    <Wrapper>
+    <FullContainer>
       <FormikContext.Provider value={formikBag}>
-        <SigninForm />
-        <button onClick={handleSubmit}>Submit</button>
+        <div className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+          <div className="py-4 mb-3">
+            <div className="text-3xl text-center font-semibold ">
+              <span>Admin Panel</span>
+            </div>
+            <div className="text-sm text-center text-slate-400 ">
+              <span>v1.0.0.1</span>
+            </div>
+          </div>
+
+          <SigninForm />
+          <div className="mx-3 text-center">
+            <Button label="Singin" onClick={handleSubmit} variant="primary" />
+          </div>
+        </div>
       </FormikContext.Provider>
-    </Wrapper>
+    </FullContainer>
   );
 };
 

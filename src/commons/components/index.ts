@@ -1,4 +1,10 @@
-import { Wrapper, HashDiv, FixedContainer, AbsContainer } from "./container";
+import {
+  Wrapper,
+  HashDiv,
+  FixedContainer,
+  AbsContainer,
+  FullContainer,
+} from "./container";
 import { Card } from "./cards";
 import Typography from "./typography";
 import {
@@ -49,4 +55,5 @@ export {
   FormikCheckbox,
   NoAssign,
   ConfirmModal,
+  FullContainer,
 };
