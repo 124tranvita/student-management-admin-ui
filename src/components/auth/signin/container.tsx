@@ -12,11 +12,14 @@ import { SigninFormikProps, signinFormikInitial } from "./types";
 import SigninForm from "./signin-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../../commons/components/buttons";
+import { getProfile } from "../utils";
+import { useLoginInfContext } from "../../../hooks/useLoginInfContext";
 
 const Signin: FC = () => {
   const navigate = useNavigate();
   const { setTitle } = useTitle();
   const { dispatchAuth } = useAuthContext();
+  const { dispatchLoginInf } = useLoginInfContext();
 
   const { callApi, response, isLoading, error } =
     useCallApi<SigninToken>(signinTokenInitial);
@@ -30,7 +33,6 @@ const Signin: FC = () => {
   /** Check API response */
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      console.log({ response: response.data });
       // Store signin token to local storage
       localStorage.setItem("signinToken", JSON.stringify(response.data));
 
@@ -38,6 +40,8 @@ const Signin: FC = () => {
       dispatchAuth({ type: ActionType.ACT_USER_LOGIN, payload: response.data });
 
       navigate("/");
+
+      getProfile(response.data.accessToken, dispatchLoginInf);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
@@ -49,7 +53,7 @@ const Signin: FC = () => {
       password: values.password,
     };
 
-    callApi("auth/signin", {
+    callApi("auth/signin-admin", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

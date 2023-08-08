@@ -66,7 +66,6 @@ const UnassignMentorList: FC<Props> = ({ classroomId }) => {
           response.data,
           "mentor"
         );
-        console.log({ updated });
         return setRecords(updated as Mentor[]);
       }
     }

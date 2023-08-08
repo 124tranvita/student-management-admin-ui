@@ -1,9 +1,11 @@
 import { ReactNode } from "react";
+import { Link } from "react-router-dom";
 
 type CardProps = {
   children: ReactNode;
   avatar?: string;
   cover?: string;
+  path?: string;
 };
 
 const defaultCover =
@@ -30,6 +32,33 @@ export const Card: React.FC<CardProps> = ({ children, avatar, cover }) => {
 
         <div className="pt-12">{children}</div>
       </div>
+    </div>
+  );
+};
+
+export const CardDashBoard: React.FC<CardProps> = ({
+  children,
+  cover,
+  path = "/",
+}) => {
+  return (
+    <div className="p-4 pt-0">
+      <Link to={path}>
+        <div className="relative w-96 h-card-classroom-img border border-b-slate-200 shadow-sm rounded overflow-hidden hover:shadow-md duration-300">
+          <div className="w-full flex justify-end hover:drop-shadow-xl hover:scale-105 duration-300">
+            <img
+              className="-mr-24 h-card-classroom-img object-cover duration-300"
+              src={cover}
+              alt="card cover"
+              width="350"
+              height="350"
+            />
+          </div>
+          <div className="absolute top-4 left-6 text-lg text-slate-600 font-semibold">
+            {children}
+          </div>
+        </div>
+      </Link>
     </div>
   );
 };

@@ -78,7 +78,7 @@ export const ListItemControl: FC<ListItemControlProps> = ({
           title={`Update ${name}`}
           handleSubmit={handleUpdate}
           setEventId={setEventId}
-          disabled={disabled}
+          disabled={false}
         >
           {children}
         </UpdateFormModal>

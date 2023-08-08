@@ -11,7 +11,7 @@ import * as Constants from "./constants";
 
 type ContextType = {
   signinToken: SigninToken;
-  dispatchAuth: Dispatch<any>;
+  dispatchAuth: Dispatch<ActionType>;
 };
 
 type StateType = {
@@ -63,8 +63,6 @@ export const AuthContextProvider: FC<Props> = ({ children }) => {
       dispatch({ type: Constants.ACT_USER_LOGIN, payload: signinToken });
     }
   }, []);
-
-  console.log("AuthContext state: ", state);
 
   return (
     <AuthContext.Provider value={{ ...state, dispatchAuth: dispatch }}>

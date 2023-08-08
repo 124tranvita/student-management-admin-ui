@@ -1,8 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { LoginInfContextProvider } from "./context/LoginInfContext";
 import { useAuthContext } from "./hooks/useAuthContext";
-import { publicPages, privatePages } from "./pages";
-import { Pages } from "./pages/route";
+import { publicPages, privatePages, Pages } from "./pages";
 
 function App() {
   const { signinToken } = useAuthContext();
@@ -19,7 +18,7 @@ function App() {
                 !signinToken.accessToken ? (
                   <>{page.page}</>
                 ) : (
-                  <Navigate to="/" />
+                  <Navigate to="/mentor" />
                 )
               }
             />

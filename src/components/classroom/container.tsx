@@ -9,6 +9,7 @@ import {
   ComponentLoader,
   Pagination,
   Buttons,
+  ListWrapper,
 } from "../../commons/components";
 import { Classroom, classroomInitial } from "../../commons/model";
 import {
@@ -52,7 +53,7 @@ const Classroom: FC = () => {
     grossCnt: response.grossCnt || 0,
   });
 
-  console.log({ error });
+  console.table({ response, error });
   /** Get mentor list at init */
   useEffect(() => {
     setTitle("Classrooms");
@@ -68,8 +69,6 @@ const Classroom: FC = () => {
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      if (eventId === Constants.EventId.RenewToken) return;
-
       if (eventId === Constants.EventId.Add) {
         return setClassrooms(classrooms.concat(response.data));
       }
@@ -248,7 +247,11 @@ const Classroom: FC = () => {
     );
   }
 
-  if (classrooms && classrooms.length === 0) {
+  if (
+    classrooms &&
+    classrooms.length === 0 &&
+    eventId !== Constants.EventId.RenewToken
+  ) {
     return (
       <>
         <NoItem>
@@ -267,13 +270,6 @@ const Classroom: FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div>
-        <h1>Error...</h1>
-      </div>
-    );
-  }
   return (
     <Wrapper>
       {/* Left Panel */}
@@ -297,7 +293,7 @@ const Classroom: FC = () => {
               <ComponentLoader />
             </div>
           ) : (
-            <>
+            <ListWrapper>
               <ClassroomList
                 classrooms={classrooms}
                 selectedId={classroom ? classroom._id : ""}
@@ -307,10 +303,12 @@ const Classroom: FC = () => {
                 handleSelect={handleSelect}
                 setEventId={setEventId}
               />
-            </>
+            </ListWrapper>
           )}
           <AbsContainer variant="top-right">
-            <Buttons.ReloadButton />
+            <span className="mr-2">
+              <Buttons.ReloadButton />
+            </span>
             {isLoading && eventId === Constants.EventId.Add ? (
               <div className="absolute top-4 right-1">
                 <Buttons.ButtonLoader variant="primary" />

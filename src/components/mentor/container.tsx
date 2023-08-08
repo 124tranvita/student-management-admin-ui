@@ -9,9 +9,11 @@ import {
   ComponentLoader,
   Pagination,
   Buttons,
+  ListWrapper,
 } from "../../commons/components";
 import { Mentor, mentorInitial } from "../../commons/model";
 import {
+  getMentorFilter,
   isHttpStatusCode401,
   isNotNullData,
   isResponseSuccessfully,
@@ -38,6 +40,7 @@ import { Role, Status } from "./constants";
 const Mentor: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [mentor, setMentor] = useState<Mentor>();
+  const [filter, setFilter] = useState<string>("0");
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(Constants.PAGE_LIMIT);
   const [eventId, setEventId] = useState<Constants.EventId>(
@@ -59,20 +62,21 @@ const Mentor: FC = () => {
   /** Get mentor list at init */
   useEffect(() => {
     setTitle("Mentors");
-    callApi(`mentor?id=${loginInf.sub}&page=${page}&limit=${limit}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-      },
-    });
+    callApi(
+      `mentor?id=${loginInf.sub}&role=${filter}&page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${signinToken.accessToken}`,
+        },
+      }
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signinToken.accessToken]);
+  }, [signinToken.accessToken, loginInf.sub, filter]);
 
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      if (eventId === Constants.EventId.RenewToken) return;
-
       if (eventId === Constants.EventId.Add) {
         return setMentors(mentors.concat(response.data));
       }
@@ -278,19 +282,18 @@ const Mentor: FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div>
-        <h1>Error...</h1>
-      </div>
-    );
-  }
   return (
     <Wrapper>
       {/* Left Panel */}
       <div className="relative w-1/4">
         <NavigatePanel
-          path={[{ name: "Mentors", to: "/mentor", destiny: true }]}
+          path={[
+            {
+              name: `Mentors: ${getMentorFilter(filter)}`,
+              to: "/mentor",
+              destiny: true,
+            },
+          ]}
         />
         {mentor && (
           <>
@@ -313,7 +316,7 @@ const Mentor: FC = () => {
               <ComponentLoader />
             </div>
           ) : (
-            <>
+            <ListWrapper>
               <MentorList
                 mentors={mentors}
                 selectedId={mentor ? mentor._id : ""}
@@ -323,24 +326,23 @@ const Mentor: FC = () => {
                 handleSelect={handleSelect}
                 setEventId={setEventId}
               />
-            </>
+            </ListWrapper>
           )}
           <AbsContainer variant="top-right">
-            <Buttons.ReloadButton />
-            {isLoading && eventId === Constants.EventId.Add ? (
-              <div className="absolute top-4 right-1">
-                <Buttons.ButtonLoader variant="primary" />
-              </div>
-            ) : (
-              <AddFormModal
-                title="Add new mentor"
-                type="add"
-                handleSubmit={handleSubmit}
-                setEventId={setEventId}
-              >
-                <CreateForm />
-              </AddFormModal>
-            )}
+            <span className="mr-2">
+              <Buttons.SwitchButton filter={filter} setFilter={setFilter} />
+            </span>
+            <span className="mr-2">
+              <Buttons.ReloadButton />
+            </span>
+            <AddFormModal
+              title="Add new mentor"
+              type="add"
+              handleSubmit={handleSubmit}
+              setEventId={setEventId}
+            >
+              <CreateForm />
+            </AddFormModal>
           </AbsContainer>
           <div className="absolute -bottom-24 left-0 right-0">
             <Pagination

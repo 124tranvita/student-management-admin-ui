@@ -23,7 +23,7 @@ export const FlexContainer: React.FC<Props> = ({ children }) => {
 /** Wrapper container */
 export const Wrapper: React.FC<Props> = ({ children }) => {
   return (
-    <div className="w-full p-6">
+    <div className="relative w-full p-6">
       <div className="fixed top-12 left-12 bottom-12 right-12 px-12 py-8 bg-white border border-slate-100 rounded-md shadow-lg hover:shadow-xl duration-300 overflow-y-auto">
         <div className="flex justify-start p-4">{children}</div>
       </div>
@@ -74,7 +74,7 @@ export const AbsContainer: React.FC<FixedContainerProps> = ({
   return (
     <div
       className={classNames(
-        "absolute flex justify-between w-32",
+        "absolute flex justify-between",
         AbsVariantMap[variant]
       )}
     >
@@ -99,4 +99,9 @@ export const FullContainer: React.FC<Props> = ({ children }) => {
       {children}
     </div>
   );
+};
+
+/** List Wrapper */
+export const ListWrapper: React.FC<Props> = ({ children }) => {
+  return <div className="overflow-y-auto">{children}</div>;
 };
