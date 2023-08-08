@@ -63,7 +63,5 @@ export const createValidateSubmission = (
     }
   }
 
-  console.log({ response });
-
   return errors;
 };

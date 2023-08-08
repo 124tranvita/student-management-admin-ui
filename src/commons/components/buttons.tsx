@@ -1,7 +1,12 @@
-import React, { ButtonHTMLAttributes, useCallback } from "react";
+import React, {
+  ButtonHTMLAttributes,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { classNames } from "../utils";
-import { BackIcon, ReloadIcon } from "./icons";
+import { BackIcon, ReloadIcon, SwitchIcon } from "./icons";
 
 enum Variant {
   Primary = "primary",
@@ -188,6 +193,29 @@ export const ReloadButton: React.FC = () => {
         label={<ReloadIcon />}
         onClick={handleRefreshPage}
       />
+    </>
+  );
+};
+
+type SwitchButtonProps = {
+  filter: string;
+  setFilter: Dispatch<SetStateAction<string>>;
+};
+
+export const SwitchButton: React.FC<SwitchButtonProps> = ({
+  filter,
+  setFilter,
+}) => {
+  const handleSwitch = () => {
+    if (filter === "0") {
+      setFilter("1");
+    } else {
+      setFilter("0");
+    }
+  };
+  return (
+    <>
+      <Button variant="primary" label={<SwitchIcon />} onClick={handleSwitch} />
     </>
   );
 };

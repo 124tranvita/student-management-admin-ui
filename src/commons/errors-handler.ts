@@ -6,8 +6,6 @@ export const statusCode401Handler = async (
   dispatch: Dispatch<any>
 ) => {
   try {
-    console.log("INSIDE CALLBACK");
-
     const URL = `${import.meta.env.VITE_API_BASE_URL_LOCAL}auth/refresh`;
 
     const response = await fetch(URL, {

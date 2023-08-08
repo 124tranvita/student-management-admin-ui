@@ -1,10 +1,17 @@
-import { createContext, useReducer, FC, ReactNode, Dispatch } from "react";
+import {
+  createContext,
+  useReducer,
+  FC,
+  ReactNode,
+  Dispatch,
+  useEffect,
+} from "react";
 import { LoginInf, loginInfInitial } from "../commons/model";
 import * as Constants from "./constants";
 
 type ContextType = {
   loginInf: LoginInf;
-  dispatchLoginInf: Dispatch<any>;
+  dispatchLoginInf: Dispatch<ActionType>;
 };
 
 type StateType = {
@@ -40,6 +47,22 @@ export const LoginInfContextProvider: FC<Props> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, {
     loginInf: loginInfInitial,
   });
+
+  const getLoginInfFromSessionStorage = () => {
+    try {
+      return JSON.parse(sessionStorage.getItem("loginInf") || "");
+    } catch (error) {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const loginInf = getLoginInfFromSessionStorage();
+
+    if (loginInf) {
+      dispatch({ type: Constants.ACT_SET_LOGIN_INF, payload: loginInf });
+    }
+  }, []);
 
   return (
     <LoginInfContext.Provider value={{ ...state, dispatchLoginInf: dispatch }}>

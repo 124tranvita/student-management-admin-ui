@@ -54,6 +54,10 @@ export const getArrayDiff = (array1: any[], array2: any[]) => {
   );
 };
 
+export const getMentorFilter = (value: string): string => {
+  return value === "0" ? "Mentor" : "Admin";
+};
+
 export const getAssignArrayDiff = (
   array1: any[],
   array2: any[],

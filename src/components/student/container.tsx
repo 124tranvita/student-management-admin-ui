@@ -9,6 +9,7 @@ import {
   ComponentLoader,
   Pagination,
   Buttons,
+  ListWrapper,
 } from "../../commons/components";
 import { Student, studentInitial } from "../../commons/model";
 import {
@@ -53,7 +54,6 @@ const Student: FC = () => {
     grossCnt: response.grossCnt || 0,
   });
 
-  console.log({ response });
   /** Get mentor list at init */
   useEffect(() => {
     setTitle("Students");
@@ -69,8 +69,6 @@ const Student: FC = () => {
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      if (eventId === Constants.EventId.RenewToken) return;
-
       if (eventId === Constants.EventId.Add) {
         return setStudents(students.concat(response.data));
       }
@@ -282,13 +280,6 @@ const Student: FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div>
-        <h1>Error...</h1>
-      </div>
-    );
-  }
   return (
     <Wrapper>
       {/* Left Panel */}
@@ -310,25 +301,10 @@ const Student: FC = () => {
       {/* Right Panel */}
       <FormikContext.Provider value={formikBag}>
         <div className="relative w-3/4 p-4 h-75vh">
-          {isComponentLoading ? (
-            <div className="relative h-full">
-              <ComponentLoader />
-            </div>
-          ) : (
-            <>
-              <StudentList
-                students={students}
-                selectedId={student ? student._id : ""}
-                limit={limit}
-                handleUpdate={handleUpdate}
-                handleRemove={handleRemove}
-                handleSelect={handleSelect}
-                setEventId={setEventId}
-              />
-            </>
-          )}
           <AbsContainer variant="top-right">
-            <Buttons.ReloadButton />
+            <span className="mr-2">
+              <Buttons.ReloadButton />
+            </span>
             {isLoading && eventId === Constants.EventId.Add ? (
               <div className="absolute top-4 right-1">
                 <Buttons.ButtonLoader variant="primary" />
@@ -344,6 +320,24 @@ const Student: FC = () => {
               </AddFormModal>
             )}
           </AbsContainer>
+          {isComponentLoading ? (
+            <div className="relative h-full">
+              <ComponentLoader />
+            </div>
+          ) : (
+            <ListWrapper>
+              <StudentList
+                students={students}
+                selectedId={student ? student._id : ""}
+                limit={limit}
+                handleUpdate={handleUpdate}
+                handleRemove={handleRemove}
+                handleSelect={handleSelect}
+                setEventId={setEventId}
+              />
+            </ListWrapper>
+          )}
+
           <div className="absolute -bottom-24 left-0 right-0">
             <Pagination
               paginationRange={paginationRange}
