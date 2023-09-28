@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import { Error, Response } from "./model";
-import { HttpStatusCode, ResponseResult } from "./constants";
+import { EventId, HttpStatusCode, ResponseResult } from "./constants";
 
 export const classNames = (
   ...classes: (false | null | undefined | string)[]
@@ -108,4 +108,32 @@ export const serializedAssignResponseArray = <T>(
   const serialized = getAssignArrayDiff(data, result, model);
 
   return serialized;
+};
+
+export const getResponeMsg = (prefix: string, eventId?: EventId) => {
+  switch (eventId) {
+    case EventId.Add:
+      return `New ${prefix} has been added`;
+    case EventId.Update:
+      return `Selected ${prefix} has been updated`;
+    case EventId.Delete:
+      return `Selected ${prefix} has been deleted`;
+    case EventId.Assign:
+      return `Selected ${prefix} has been assigned`;
+    case EventId.Unassign:
+      return `Selected ${prefix} has been unassigned`;
+    default:
+      return "";
+  }
+};
+
+export const storeHistory = (path: string) => {
+  if (!path) return "";
+  localStorage.setItem("path", path);
+};
+
+export const getStoreHistory = () => {
+  const history = localStorage.getItem("path");
+
+  return history ? history : "";
 };

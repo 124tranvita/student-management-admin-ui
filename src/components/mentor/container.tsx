@@ -1,7 +1,6 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { FormikContext, useFormik } from "formik";
 import {
-  Wrapper,
   AddFormModal,
   AbsContainer,
   NavigatePanel,
@@ -10,18 +9,19 @@ import {
   Pagination,
   Buttons,
   ListWrapper,
+  ToastMsgWrapper,
 } from "../../commons/components";
 import { Mentor, mentorInitial } from "../../commons/model";
 import {
   getMentorFilter,
-  isHttpStatusCode401,
+  getResponeMsg,
   isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
   serializedPatchResponse,
+  storeHistory,
 } from "../../commons/utils";
 import * as Constants from "../../commons/constants";
-import { statusCode401Handler } from "../../commons/errors-handler";
 import useCallApi from "../../hooks/useCallApi";
 import usePagination from "../../hooks/usePagination";
 import useTitle from "../../hooks/useTitle";
@@ -41,13 +41,15 @@ const Mentor: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [mentor, setMentor] = useState<Mentor>();
   const [filter, setFilter] = useState<string>("0");
+  const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(Constants.PAGE_LIMIT);
+  const [limit] = useState<number>(Constants.PAGE_LIMIT);
+  const [grossCnt, setGrossCnt] = useState<number>(0);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
-  const { signinToken, dispatchAuth } = useAuthContext();
+  const { signinToken } = useAuthContext();
   const { loginInf } = useLoginInfContext();
   const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<Mentor[] | Mentor>(
@@ -56,11 +58,12 @@ const Mentor: FC = () => {
 
   const { paginationRange } = usePagination({
     limit,
-    grossCnt: response.grossCnt || 0,
+    grossCnt,
   });
 
   /** Get mentor list at init */
   useEffect(() => {
+    storeHistory("/mentor");
     setTitle("Mentors");
     callApi(
       `mentor?id=${loginInf.sub}&role=${filter}&page=${page}&limit=${limit}`,
@@ -72,35 +75,39 @@ const Mentor: FC = () => {
       }
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signinToken.accessToken, loginInf.sub, filter]);
+  }, [loginInf.sub, filter]);
 
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
+      formikBag.resetForm();
+
       if (eventId === Constants.EventId.Add) {
+        setGrossCnt(grossCnt + 1);
+        setIsShowToastMsg(true);
         return setMentors(mentors.concat(response.data));
       }
 
       if (eventId === Constants.EventId.Update) {
         const updated = serializedPatchResponse(mentors, response.data);
         setMentor(response.data as Mentor);
+        setIsShowToastMsg(true);
         return setMentors(updated);
       }
 
       if (eventId === Constants.EventId.Delete) {
         const updated = serializedDeleteResponse(mentors, response.data);
+        setGrossCnt(grossCnt - 1);
+        setIsShowToastMsg(true);
         return setMentors(updated as Mentor[]);
       }
 
+      setGrossCnt(response.grossCnt || 0);
       return setMentors(response.data as Mentor[]);
-    } else {
-      if (error && isHttpStatusCode401(error)) {
-        setEventId(Constants.EventId.RenewToken);
-        statusCode401Handler(signinToken.refreshToken, dispatchAuth);
-      }
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, error]);
+  }, [response]);
 
   useEffect(() => {
     if (eventId === Constants.EventId.Update) return;
@@ -132,8 +139,6 @@ const Mentor: FC = () => {
       },
       body: JSON.stringify(data),
     });
-
-    formikBag.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -162,6 +167,21 @@ const Mentor: FC = () => {
     formikBag.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** Get response status */
+  const toastMsgObj = useMemo(() => {
+    if (error) {
+      return {
+        status: error.status,
+        msg: error.message,
+      };
+    }
+
+    return {
+      status: response.status,
+      msg: getResponeMsg("mentor", eventId),
+    };
+  }, [error, response.status, eventId]);
 
   /** Set component loading screen*/
   const isComponentLoading = useMemo(() => {
@@ -259,9 +279,9 @@ const Mentor: FC = () => {
 
   if (isLoading && eventId === Constants.EventId.Init) {
     return (
-      <Wrapper>
+      <>
         <Loader />
-      </Wrapper>
+      </>
     );
   }
 
@@ -283,7 +303,9 @@ const Mentor: FC = () => {
   }
 
   return (
-    <Wrapper>
+    <>
+      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
+
       {/* Left Panel */}
       <div className="relative w-1/4">
         <NavigatePanel
@@ -353,7 +375,7 @@ const Mentor: FC = () => {
           </div>
         </div>
       </FormikContext.Provider>
-    </Wrapper>
+    </>
   );
 };
 

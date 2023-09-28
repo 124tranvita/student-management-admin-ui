@@ -1,7 +1,6 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { FormikContext, useFormik } from "formik";
 import {
-  Wrapper,
   AddFormModal,
   AbsContainer,
   NavigatePanel,
@@ -10,17 +9,18 @@ import {
   Pagination,
   Buttons,
   ListWrapper,
+  ToastMsgWrapper,
 } from "../../commons/components";
 import { Classroom, classroomInitial } from "../../commons/model";
 import {
-  isHttpStatusCode401,
+  getResponeMsg,
   isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
   serializedPatchResponse,
+  storeHistory,
 } from "../../commons/utils";
 import * as Constants from "../../commons/constants";
-import { statusCode401Handler } from "../../commons/errors-handler";
 import usePagination from "../../hooks/usePagination";
 import useCallApi from "../../hooks/useCallApi";
 import useTitle from "../../hooks/useTitle";
@@ -37,25 +37,28 @@ import NoItem from "./no-item";
 const Classroom: FC = () => {
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [classroom, setClassroom] = useState<Classroom>();
+  const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(Constants.PAGE_LIMIT);
+  const [limit] = useState<number>(Constants.PAGE_LIMIT);
+  const [grossCnt, setGrossCnt] = useState<number>(0);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
-  const { signinToken, dispatchAuth } = useAuthContext();
+  const { signinToken } = useAuthContext();
   const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<
     Classroom[] | Classroom
   >([] || classroomInitial);
   const { paginationRange } = usePagination({
     limit,
-    grossCnt: response.grossCnt || 0,
+    grossCnt,
   });
 
   console.table({ response, error });
   /** Get mentor list at init */
   useEffect(() => {
+    storeHistory("/classroom");
     setTitle("Classrooms");
     callApi(`classroom?page=${page}&limit=${limit}`, {
       method: "GET",
@@ -64,32 +67,33 @@ const Classroom: FC = () => {
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signinToken.accessToken]);
+  }, []);
 
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
       if (eventId === Constants.EventId.Add) {
+        setGrossCnt(grossCnt + 1);
+        setIsShowToastMsg(true);
         return setClassrooms(classrooms.concat(response.data));
       }
 
       if (eventId === Constants.EventId.Update) {
         const updated = serializedPatchResponse(classrooms, response.data);
         setClassroom(response.data as Classroom);
+        setIsShowToastMsg(true);
         return setClassrooms(updated);
       }
 
       if (eventId === Constants.EventId.Delete) {
         const updated = serializedDeleteResponse(classrooms, response.data);
+        setGrossCnt(grossCnt - 1);
+        setIsShowToastMsg(true);
         return setClassrooms(updated);
       }
 
+      setGrossCnt(response.grossCnt || 0);
       return setClassrooms(response.data as Classroom[]);
-    } else {
-      if (error && isHttpStatusCode401(error)) {
-        setEventId(Constants.EventId.RenewToken);
-        statusCode401Handler(signinToken.refreshToken, dispatchAuth);
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response, error]);
@@ -148,6 +152,21 @@ const Classroom: FC = () => {
     formikBag.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** Get response status */
+  const toastMsgObj = useMemo(() => {
+    if (error) {
+      return {
+        status: error.status,
+        msg: error.message,
+      };
+    }
+
+    return {
+      status: response.status,
+      msg: getResponeMsg("classroom", eventId),
+    };
+  }, [error, response.status, eventId]);
 
   /** Set component loading screen*/
   const isComponentLoading = useMemo(() => {
@@ -241,9 +260,9 @@ const Classroom: FC = () => {
 
   if (isLoading && eventId === Constants.EventId.Init) {
     return (
-      <Wrapper>
+      <>
         <Loader />
-      </Wrapper>
+      </>
     );
   }
 
@@ -271,7 +290,8 @@ const Classroom: FC = () => {
   }
 
   return (
-    <Wrapper>
+    <>
+      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
       {/* Left Panel */}
       <div className="relative w-1/4">
         <NavigatePanel
@@ -333,7 +353,7 @@ const Classroom: FC = () => {
           </div>
         </div>
       </FormikContext.Provider>
-    </Wrapper>
+    </>
   );
 };
 

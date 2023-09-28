@@ -50,7 +50,14 @@ export const AuthContextProvider: FC<Props> = ({ children }) => {
 
   const getSigninTokenFromLocalStorage = () => {
     try {
-      return JSON.parse(localStorage.getItem("signinToken") || "");
+      const accessToken = JSON.parse(
+        sessionStorage.getItem("accessToken") || ""
+      );
+      const refreshToken = JSON.parse(
+        sessionStorage.getItem("refreshToken") || ""
+      );
+
+      return { accessToken, refreshToken };
     } catch (error) {
       return null;
     }
