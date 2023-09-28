@@ -48,15 +48,14 @@ export const LoginInfContextProvider: FC<Props> = ({ children }) => {
     loginInf: loginInfInitial,
   });
 
-  const getLoginInfFromSessionStorage = () => {
-    try {
-      return JSON.parse(sessionStorage.getItem("loginInf") || "");
-    } catch (error) {
-      return null;
-    }
-  };
-
   useEffect(() => {
+    const getLoginInfFromSessionStorage = () => {
+      try {
+        return JSON.parse(sessionStorage.getItem("loginInf") || "");
+      } catch (error) {
+        return null;
+      }
+    };
     const loginInf = getLoginInfFromSessionStorage();
 
     if (loginInf) {

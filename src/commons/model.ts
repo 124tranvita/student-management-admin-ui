@@ -167,8 +167,8 @@ export const signinTokenInitial: SigninToken = {
 export type LoginInf = {
   sub: string;
   email: string;
-  iat?: number;
-  exp?: number;
+  iat: number;
+  exp: number;
 };
 
 export const loginInfInitial: LoginInf = {

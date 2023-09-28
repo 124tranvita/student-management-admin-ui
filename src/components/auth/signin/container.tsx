@@ -1,25 +1,25 @@
-import { FC, useCallback, useEffect } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { FormikContext, useFormik } from "formik";
-import { Wrapper, Loader, FullContainer } from "../../../commons/components";
+import { useNavigate } from "react-router-dom";
+import { FullContainer } from "../../../commons/components";
 import { SigninToken, signinTokenInitial } from "../../../commons/model";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import useCallApi from "../../../hooks/useCallApi";
-import * as ActionType from "../../../context/constants";
 import useTitle from "../../../hooks/useTitle";
 import { useAuthContext } from "../../../hooks/useAuthContext";
+import { Button } from "../../../commons/components/buttons";
+import { useSilentRefreshToken } from "../../../hooks/useSilentRefreshToken";
+import { TOKEN_EXPIRY } from "../../../commons/constants";
+import SigninForm from "./signin-form";
 import { createValidationSchema } from "./validatation-schema";
 import { SigninFormikProps, signinFormikInitial } from "./types";
-import SigninForm from "./signin-form";
-import { useNavigate } from "react-router-dom";
-import { Button } from "../../../commons/components/buttons";
-import { getProfile } from "../utils";
-import { useLoginInfContext } from "../../../hooks/useLoginInfContext";
 
 const Signin: FC = () => {
   const navigate = useNavigate();
+  const [refreshToken, setRefreshToken] = useState<string>("");
   const { setTitle } = useTitle();
   const { dispatchAuth } = useAuthContext();
-  const { dispatchLoginInf } = useLoginInfContext();
+  useSilentRefreshToken(refreshToken, TOKEN_EXPIRY, dispatchAuth);
 
   const { callApi, response, isLoading, error } =
     useCallApi<SigninToken>(signinTokenInitial);
@@ -33,15 +33,9 @@ const Signin: FC = () => {
   /** Check API response */
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      // Store signin token to local storage
-      localStorage.setItem("signinToken", JSON.stringify(response.data));
-
-      // Set signin token to auth context
-      dispatchAuth({ type: ActionType.ACT_USER_LOGIN, payload: response.data });
-
-      navigate("/");
-
-      getProfile(response.data.accessToken, dispatchLoginInf);
+      setRefreshToken(response.data.refreshToken);
+      // Back to '/'
+      navigate(-1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
@@ -60,8 +54,6 @@ const Signin: FC = () => {
       },
       body: JSON.stringify(data),
     });
-
-    formikBag.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -83,21 +75,6 @@ const Signin: FC = () => {
     }
   }, [formikBag]);
 
-  if (isLoading) {
-    return (
-      <Wrapper>
-        <Loader />
-      </Wrapper>
-    );
-  }
-
-  if (error) {
-    return (
-      <div>
-        <h1>Error...</h1>
-      </div>
-    );
-  }
   return (
     <FullContainer>
       <FormikContext.Provider value={formikBag}>
@@ -106,11 +83,22 @@ const Signin: FC = () => {
             <div className="text-3xl text-center font-semibold ">
               <span>Admin Panel</span>
             </div>
-            <div className="text-sm text-center text-slate-400 ">
+            <div className="text-sm text-center text-slate-400 mb-3 ">
               <span>v1.0.0.1</span>
             </div>
+            {error && (
+              <div className="text-sm font-semibold text-center text-red-400">
+                <span>{error?.message}</span>
+              </div>
+            )}
+            {isLoading && (
+              <div className="flex items-center justify-center space-x-2 animate-bounce ">
+                <div className="w-3 h-3 rounded-sm bg-blue-400 animate-spin"></div>
+                <div className="w-3 h-3 rounded-sm bg-green-400 animate-spin"></div>
+                <div className="w-3 h-3 rounded-sm bg-black animate-spin"></div>
+              </div>
+            )}
           </div>
-
           <SigninForm />
           <div className="mx-3 text-center">
             <Button label="Singin" onClick={handleSubmit} variant="primary" />

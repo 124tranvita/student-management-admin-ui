@@ -1,7 +1,6 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { FormikContext, useFormik } from "formik";
 import {
-  Wrapper,
   AddFormModal,
   AbsContainer,
   NavigatePanel,
@@ -10,19 +9,21 @@ import {
   Pagination,
   Buttons,
   ListWrapper,
+  ToastMsgWrapper,
 } from "../../commons/components";
 import { Student, studentInitial } from "../../commons/model";
 import {
+  getResponeMsg,
   isHttpStatusCode401,
   isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
   serializedPatchResponse,
+  storeHistory,
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
 import * as Constants from "../../commons/constants";
 import { dateFormatter } from "../../commons/time-func";
-import { statusCode401Handler } from "../../commons/errors-handler";
 import usePagination from "../../hooks/usePagination";
 import useTitle from "../../hooks/useTitle";
 import { useAuthContext } from "../../hooks/useAuthContext";
@@ -38,24 +39,27 @@ import AssignPanel from "./assign-panel";
 const Student: FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [student, setStudent] = useState<Student>();
+  const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(Constants.PAGE_LIMIT);
+  const [limit] = useState<number>(Constants.PAGE_LIMIT);
+  const [grossCnt, setGrossCnt] = useState<number>(0);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
 
-  const { signinToken, dispatchAuth } = useAuthContext();
+  const { signinToken } = useAuthContext();
   const { setTitle } = useTitle();
   const { callApi, response, isLoading, error } = useCallApi<
     Student[] | Student
   >([] || studentInitial);
   const { paginationRange } = usePagination({
     limit,
-    grossCnt: response.grossCnt || 0,
+    grossCnt,
   });
 
   /** Get mentor list at init */
   useEffect(() => {
+    storeHistory("/student");
     setTitle("Students");
     callApi(`student?page=${page}&limit=${limit}`, {
       method: "GET",
@@ -64,31 +68,38 @@ const Student: FC = () => {
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signinToken.accessToken]);
+  }, []);
 
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
       if (eventId === Constants.EventId.Add) {
+        setGrossCnt(grossCnt + 1);
+        setIsShowToastMsg(true);
         return setStudents(students.concat(response.data));
       }
 
       if (eventId === Constants.EventId.Update) {
         const updated = serializedPatchResponse(students, response.data);
         setStudent(response.data as Student);
+        setIsShowToastMsg(true);
+
         return setStudents(updated);
       }
 
       if (eventId === Constants.EventId.Delete) {
         const updated = serializedDeleteResponse(students, response.data);
+        setGrossCnt(grossCnt - 1);
+        setIsShowToastMsg(true);
         return setStudents(updated);
       }
 
+      setGrossCnt(response.grossCnt || 0);
       return setStudents(response.data as Student[]);
     } else {
       if (error && isHttpStatusCode401(error)) {
-        setEventId(Constants.EventId.RenewToken);
-        statusCode401Handler(signinToken.refreshToken, dispatchAuth);
+        // setEventId(Constants.EventId.RenewToken);
+        // statusCode401Handler(signinToken.refreshToken, dispatchAuth);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -132,6 +143,21 @@ const Student: FC = () => {
     formikBag.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** Get response status */
+  const toastMsgObj = useMemo(() => {
+    if (error) {
+      return {
+        status: error.status,
+        msg: error.message,
+      };
+    }
+
+    return {
+      status: response.status,
+      msg: getResponeMsg("student", eventId),
+    };
+  }, [error, response.status, eventId]);
 
   /** Update Submit */
   const onUpdate = useCallback((values: StudentFormikProps) => {
@@ -257,9 +283,9 @@ const Student: FC = () => {
 
   if (isLoading && eventId === Constants.EventId.Init) {
     return (
-      <Wrapper>
+      <>
         <Loader />
-      </Wrapper>
+      </>
     );
   }
 
@@ -281,7 +307,8 @@ const Student: FC = () => {
   }
 
   return (
-    <Wrapper>
+    <>
+      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
       {/* Left Panel */}
       <div className="relative w-1/4">
         <NavigatePanel
@@ -347,7 +374,7 @@ const Student: FC = () => {
           </div>
         </div>
       </FormikContext.Provider>
-    </Wrapper>
+    </>
   );
 };
 

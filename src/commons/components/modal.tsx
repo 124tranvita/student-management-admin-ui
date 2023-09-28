@@ -4,6 +4,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { Button, IconButton, RoundedIconButton } from "./buttons";
 import { DeleteIcon, EditIcon, AssignIcon, UnassignIcon } from "./icons";
 import { EventId } from "../constants";
+import { isNotNullData } from "../utils";
 
 type DialogModalProps = {
   children: React.ReactNode;
@@ -59,7 +60,7 @@ export const DialogModal: React.FC<DialogModalProps> = ({
 type FormModalProps = {
   title: string;
   children: React.ReactNode;
-  handleSubmit?: () => void;
+  handleSubmit: () => void;
   type?: "add" | "update" | "assign" | "delete" | "unassign";
   disabled?: boolean;
 };
@@ -75,23 +76,31 @@ export const AddFormModal: React.FC<
   const formikBag = useFormikContext();
   const [isOpen, setIsOpen] = useState(false);
 
+  const closeModal = () => {
+    setIsOpen(false);
+    setEventId(EventId.None);
+    formikBag.setErrors({});
+    formikBag.resetForm();
+  };
+
+  const openModal = () => {
+    setEventId(EventId.Add);
+    setIsOpen(true);
+  };
+
+  const onClickEvent = () => {
+    handleSubmit();
+
+    if (!isNotNullData(formikBag.errors)) {
+      setIsOpen(false);
+    }
+  };
+
   const RenderedButton = (
     <>
       <Button type="button" label="Add" onClick={openModal} variant="primary" />
     </>
   );
-
-  function closeModal() {
-    setIsOpen(false);
-    setEventId(EventId.None);
-    formikBag.setErrors({});
-    formikBag.resetForm();
-  }
-
-  function openModal() {
-    setEventId(EventId.Add);
-    setIsOpen(true);
-  }
 
   return (
     <DialogModal
@@ -113,7 +122,7 @@ export const AddFormModal: React.FC<
             type="submit"
             label="Add"
             variant="primary"
-            onClick={handleSubmit}
+            onClick={onClickEvent}
           />
           <Button
             type="button"
@@ -505,7 +514,7 @@ export const ConfirmModal: React.FC<
         <div className="flex justify-around mt-4">
           <Button
             type="submit"
-            label="Assign"
+            label="Confirm"
             variant="primary"
             onClick={handleSubmit}
           />

@@ -40,8 +40,6 @@ const AssignedClassroomList: FC<Props> = ({ studentId }) => {
     AssignClassroomMentor[]
   >([]);
 
-  console.log({ response });
-
   /** Call API at init */
   useEffect(() => {
     callApi(

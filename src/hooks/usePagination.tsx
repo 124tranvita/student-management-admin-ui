@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type PaginationProps = {
   limit: number;
@@ -11,13 +11,19 @@ const range = (start: number, end: number) => {
 };
 
 const usePagination = ({ limit, grossCnt }: PaginationProps) => {
-  useEffect(() => {
-    if (grossCnt > 0)
-      localStorage.setItem("grossCnt", JSON.stringify(grossCnt));
-  }, [grossCnt]);
+  // const [count, setCount] = useState<number>(
+  //   JSON.parse(localStorage.getItem("grossCnt") || "0") || grossCnt
+  // );
+  const [total, setTotal] = useState<number>(0);
 
-  const count = JSON.parse(localStorage.getItem("grossCnt") || "0");
-  const total = Math.ceil(parseInt(count) / limit);
+  useEffect(() => {
+    if (grossCnt > 0) {
+      const total = Math.ceil(grossCnt / limit);
+      setTotal(total);
+    }
+
+    // localStorage.setItem("grossCnt", JSON.stringify(grossCnt));
+  }, [grossCnt, limit]);
 
   const paginationRange = useMemo(() => {
     return range(1, total);

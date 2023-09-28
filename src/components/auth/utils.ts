@@ -1,35 +1,94 @@
-import { Dispatch } from "react";
-import { LoginInf } from "../../commons/model";
-import { ACT_SET_LOGIN_INF } from "../../context/constants";
+import jwt_decode from "jwt-decode";
+import { LoginInf, SigninToken, signinTokenInitial } from "../../commons/model";
 import * as Constants from "../../context/constants";
-import { isNotNullData, isResponseSuccessfully } from "../../commons/utils";
 
-type ActionType = {
+type LoginInfActionType = {
   type: Constants.Types;
   payload: LoginInf;
 };
 
-export const getProfile = async (
-  refreshToken: string,
-  dispatch: Dispatch<ActionType>
+type AuthActionType = {
+  type: Constants.Types;
+  payload: SigninToken;
+};
+
+export const getProfile = (
+  accessToken: string,
+  dispatch: React.Dispatch<LoginInfActionType>
 ) => {
+  const decoded: LoginInf = jwt_decode(accessToken);
+  sessionStorage.setItem("loginInf", JSON.stringify(decoded));
+  dispatch({ type: Constants.ACT_SET_LOGIN_INF, payload: decoded });
+};
+
+export const authenitcated = (
+  signinToken: SigninToken,
+  dispatch: React.Dispatch<AuthActionType>
+) => {
+  // Store refresh token to session storage
+  sessionStorage.setItem(
+    "refreshToken",
+    JSON.stringify(signinToken.refreshToken)
+  );
+  // Store access token to session storage
+  sessionStorage.setItem(
+    "accessToken",
+    JSON.stringify(signinToken.accessToken)
+  );
+  // Set signin token to auth context
+  dispatch({ type: Constants.ACT_USER_LOGIN, payload: signinToken });
+};
+
+export const refreshToken = async (
+  token: string
+): Promise<SigninToken | undefined> => {
   try {
-    const URL = `${import.meta.env.VITE_API_BASE_URL_LOCAL}auth/profile`;
+    const URL = `${import.meta.env.VITE_API_BASE_URL_LOCAL}auth/refresh`;
 
     const response = await fetch(URL, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${refreshToken}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      const error = await response.json();
+      console.log(error);
+    }
 
-    if (isResponseSuccessfully(data) && isNotNullData(data.data)) {
-      sessionStorage.setItem("loginInf", JSON.stringify(data.data));
-      dispatch({ type: ACT_SET_LOGIN_INF, payload: data.data });
+    const { accessToken, refreshToken } = await response.json();
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    console.log({ error });
+  }
+};
+
+export const sendRefreshToken = async (
+  dispatch: React.Dispatch<AuthActionType>
+) => {
+  const rfsToken = JSON.parse(sessionStorage.getItem("refreshToken") || "");
+
+  try {
+    if (rfsToken) {
+      const result = await refreshToken(rfsToken);
+      if (!result) {
+        return;
+      }
+
+      authenitcated(result, dispatch);
     }
   } catch (error) {
     console.log({ error });
   }
+};
+
+export const logout = (dispatch: React.Dispatch<AuthActionType>) => {
+  dispatch({
+    type: Constants.ACT_USER_LOGIN,
+    payload: signinTokenInitial,
+  });
+  localStorage.clear();
+  sessionStorage.clear();
 };

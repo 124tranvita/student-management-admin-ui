@@ -22,3 +22,14 @@ export enum HttpStatusCode {
   code401 = 401,
   code404 = 404,
 }
+
+export enum ErrorStatus {
+  Error = "error",
+  Warning = "warning",
+  Success = "success",
+}
+
+export const MAX_ASSIGNED_CLASSROOM = 5;
+export const MAX_ASSIGNED_STUDENT = 25;
+
+export const TOKEN_EXPIRY = 900000;
