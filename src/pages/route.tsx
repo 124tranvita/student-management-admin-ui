@@ -2,6 +2,7 @@ import Mentor from "../components/mentor";
 import Student from "../components/student";
 import Classroom from "../components/classroom";
 import Error from "../components/error";
+import Dashboard from "../components/dashboard";
 import { Signin } from "../components/auth";
 import { ReactNode } from "react";
 
@@ -16,6 +17,7 @@ export const publicPages: Pages[] = [
 ];
 
 export const privatePages: Pages[] = [
+  { page: <Dashboard />, path: "/" },
   { page: <Mentor />, path: "mentor" },
   { page: <Student />, path: "student" },
   { page: <Classroom />, path: "classroom" },

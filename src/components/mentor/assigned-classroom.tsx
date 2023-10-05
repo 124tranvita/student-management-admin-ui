@@ -10,16 +10,14 @@ import {
   ComponentLoader,
   NoAssign,
   ConfirmModal,
-  ToastMsgWrapper,
   Pagination,
 } from "../../commons/components";
 import { isBefore } from "../../commons/date-func";
 import { EventId, PAGE_LIMIT } from "../../commons/constants";
 import {
   capitalize,
-  getResponeMsg,
   isResponseSuccessfully,
-  serializedDeleteResponseArray,
+  serializedUnassignResponseArray,
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
 import { useAuthContext } from "../../hooks/useAuthContext";
@@ -74,7 +72,7 @@ const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
       }
 
       if (eventId === EventId.Unassign) {
-        const updated = serializedDeleteResponseArray(records, response.data);
+        const updated = serializedUnassignResponseArray(records, response.data);
         setGrossCnt(grossCnt - response.data.length);
         setIsShowToastMsg(true);
         return setRecords(updated as AssignClassroomMentor[]);
@@ -122,21 +120,6 @@ const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
     setEventId(EventId.Unassign);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /** Get response status */
-  const toastMsgObj = useMemo(() => {
-    if (error) {
-      return {
-        status: error.status,
-        msg: error.message,
-      };
-    }
-
-    return {
-      status: response.status,
-      msg: getResponeMsg("classroom", eventId),
-    };
-  }, [error, response.status, eventId]);
 
   /** Formik */
   const formikBag = useFormik({
@@ -187,7 +170,7 @@ const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
   if (records && records.length === 0) {
     return (
       <>
-        {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
+        {/* {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />} */}
         <NoAssign content="Mentor has no assinged classroom" />
       </>
     );
@@ -195,7 +178,7 @@ const AssignedClassroomList: FC<Props> = ({ mentorId }) => {
 
   return (
     <>
-      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
+      {/* {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />} */}
 
       <FormikContext.Provider value={formikBag}>
         <ul className="h-90per overflow-auto">

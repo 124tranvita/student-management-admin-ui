@@ -9,12 +9,10 @@ import {
   Pagination,
   Buttons,
   ListWrapper,
-  ToastMsgWrapper,
+  Search,
 } from "../../commons/components";
 import { Classroom, classroomInitial } from "../../commons/model";
 import {
-  getResponeMsg,
-  isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
   serializedPatchResponse,
@@ -25,6 +23,7 @@ import usePagination from "../../hooks/usePagination";
 import useCallApi from "../../hooks/useCallApi";
 import useTitle from "../../hooks/useTitle";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import ClassroomList from "./classroom-list";
 import { createValidationSchema } from "./validatation-schema";
 import { ClassroomFormikProps, classroomFormikInitial } from "./types";
@@ -33,30 +32,61 @@ import ClassroomInfo from "./classroom-info";
 import { createValidateSubmission } from "./validate-submission";
 import AssignPanel from "./assign-panel";
 import NoItem from "./no-item";
+import { useSearch } from "../../hooks/useSearch";
 
 const Classroom: FC = () => {
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [classroom, setClassroom] = useState<Classroom>();
-  const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(Constants.PAGE_LIMIT);
   const [grossCnt, setGrossCnt] = useState<number>(0);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
-
   const { signinToken } = useAuthContext();
   const { setTitle } = useTitle();
-  const { callApi, response, isLoading, error } = useCallApi<
-    Classroom[] | Classroom
-  >([] || classroomInitial);
+  const { setToastMessage, setErrorToastMessage, ToastMessage } =
+    useToastMessage();
+  const { callApi, response, isLoading, error, GET, POST, PATCH, DELETE } =
+    useCallApi<Classroom[] | Classroom>([] || classroomInitial);
   const { paginationRange } = usePagination({
     limit,
     grossCnt,
   });
+  const { handleSearch } = useSearch(
+    callApi,
+    `classroom?page=${page}&limit=${99}`,
+    GET(signinToken.accessToken),
+    setEventId
+  );
 
-  console.table({ response, error });
-  /** Get mentor list at init */
+  /** Set component loading screen*/
+  const isComponentLoading = useMemo(() => {
+    return (
+      isLoading &&
+      ((isLoading && eventId === Constants.EventId.Add) ||
+        eventId === Constants.EventId.Update ||
+        eventId === Constants.EventId.Delete ||
+        eventId === Constants.EventId.Paging ||
+        eventId === Constants.EventId.Search)
+    );
+  }, [isLoading, eventId]);
+
+  /** Formik initial values*/
+  const initialValues: ClassroomFormikProps = useMemo(() => {
+    if (classroom && eventId === Constants.EventId.Update)
+      return {
+        id: classroom._id,
+        name: classroom.name,
+        description: classroom.description,
+        languages: classroom.languages.toString(),
+        cover: classroom.cover,
+      };
+
+    return classroomFormikInitial;
+  }, [classroom, eventId]);
+
+  /** Call init Api */
   useEffect(() => {
     storeHistory("/classroom");
     setTitle("Classrooms");
@@ -69,31 +99,69 @@ const Classroom: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** Call Api base on search query */
+  useEffect(() => {
+    setEventId(Constants.EventId.Search);
+
+    callApi(
+      `classroom${
+        queryString ? `/search?queryString=${searchQuery}&` : "?"
+      }page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${signinToken.accessToken}`,
+        },
+      }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
   /** Check API response and set mentors data base on event type*/
   useEffect(() => {
-    if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
+    if (isResponseSuccessfully(response)) {
+      formikBag.resetForm();
+
       if (eventId === Constants.EventId.Add) {
         setGrossCnt(grossCnt + 1);
-        setIsShowToastMsg(true);
+        setQueryString("");
+        setToastMessage(Constants.Prefix.Classroom, Constants.EventId.Add);
+        setEventId(Constants.EventId.None);
         return setClassrooms(classrooms.concat(response.data));
       }
 
       if (eventId === Constants.EventId.Update) {
         const updated = serializedPatchResponse(classrooms, response.data);
         setClassroom(response.data as Classroom);
-        setIsShowToastMsg(true);
+        setToastMessage(Constants.Prefix.Classroom, Constants.EventId.Update);
+        setEventId(Constants.EventId.None);
         return setClassrooms(updated);
       }
 
       if (eventId === Constants.EventId.Delete) {
         const updated = serializedDeleteResponse(classrooms, response.data);
         setGrossCnt(grossCnt - 1);
-        setIsShowToastMsg(true);
+        setToastMessage(Constants.Prefix.Classroom, Constants.EventId.Delete);
+        setEventId(Constants.EventId.None);
         return setClassrooms(updated);
+      }
+
+      if (eventId === Constants.EventId.Search) {
+        /** Search flag in case no result on search query */
+        if (response.data instanceof Array && response.data.length === 0) {
+          setIsNoSearchResult(true);
+          return;
+        }
+        setIsNoSearchResult(false);
       }
 
       setGrossCnt(response.grossCnt || 0);
       return setClassrooms(response.data as Classroom[]);
+    } else {
+      if (error) {
+        setEventId(Constants.EventId.None);
+        setErrorToastMessage(error.message);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response, error]);
@@ -152,45 +220,6 @@ const Classroom: FC = () => {
     formikBag.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /** Get response status */
-  const toastMsgObj = useMemo(() => {
-    if (error) {
-      return {
-        status: error.status,
-        msg: error.message,
-      };
-    }
-
-    return {
-      status: response.status,
-      msg: getResponeMsg("classroom", eventId),
-    };
-  }, [error, response.status, eventId]);
-
-  /** Set component loading screen*/
-  const isComponentLoading = useMemo(() => {
-    return (
-      isLoading &&
-      ((isLoading && eventId === Constants.EventId.Add) ||
-        eventId === Constants.EventId.Update ||
-        eventId === Constants.EventId.Delete ||
-        eventId === Constants.EventId.Paging)
-    );
-  }, [isLoading, eventId]);
-  /** Formik initial values*/
-  const initialValues: ClassroomFormikProps = useMemo(() => {
-    if (classroom && eventId === Constants.EventId.Update)
-      return {
-        id: classroom._id,
-        name: classroom.name,
-        description: classroom.description,
-        languages: classroom.languages.toString(),
-        cover: classroom.cover,
-      };
-
-    return classroomFormikInitial;
-  }, [classroom, eventId]);
 
   /** Formik bag */
   const formikBag = useFormik({
@@ -269,7 +298,7 @@ const Classroom: FC = () => {
   if (
     classrooms &&
     classrooms.length === 0 &&
-    eventId !== Constants.EventId.RenewToken
+    eventId === Constants.EventId.Init
   ) {
     return (
       <>
@@ -291,7 +320,7 @@ const Classroom: FC = () => {
 
   return (
     <>
-      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
+      <ToastMessage />
       {/* Left Panel */}
       <div className="relative w-1/4">
         <NavigatePanel
@@ -313,7 +342,7 @@ const Classroom: FC = () => {
               <ComponentLoader />
             </div>
           ) : (
-            <ListWrapper>
+            <ListWrapper disabled={isNoSearchResult}>
               <ClassroomList
                 classrooms={classrooms}
                 selectedId={classroom ? classroom._id : ""}
@@ -326,6 +355,12 @@ const Classroom: FC = () => {
             </ListWrapper>
           )}
           <AbsContainer variant="top-right">
+            <span className="mr-2">
+              <Search
+                queryString={queryString}
+                setQueryString={setQueryString}
+              />
+            </span>
             <span className="mr-2">
               <Buttons.ReloadButton />
             </span>

@@ -38,7 +38,7 @@ function App() {
                 !signinToken.accessToken ? (
                   <>{page.page}</>
                 ) : (
-                  <Navigate to={history} />
+                  <Navigate to={history ? history : "/mentor"} />
                 )
               }
             />

@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Form, FormikContext, useFormik } from "formik";
-import { Classroom } from "../../commons/model";
+import { AssignClassroomMentor, Classroom } from "../../commons/model";
 import {
   Typography,
   ListItemAvatar,
@@ -8,23 +8,24 @@ import {
   AssignListItemControl,
   FormikCheckbox,
   ComponentLoader,
-  NoAssign,
   ConfirmModal,
-  ToastMsgWrapper,
   Pagination,
+  Search,
 } from "../../commons/components";
 import { isBefore } from "../../commons/date-func";
-import { EventId, PAGE_LIMIT } from "../../commons/constants";
+import { EventId, PAGE_LIMIT, Prefix } from "../../commons/constants";
 import {
   capitalize,
-  getResponeMsg,
-  isNotNullData,
   isResponseSuccessfully,
   serializedAssignResponseArray,
 } from "../../commons/utils";
-import useCallApi from "../../hooks/useCallApi";
-import { useAuthContext } from "../../hooks/useAuthContext";
-import usePagination from "../../hooks/usePagination";
+import {
+  useCallApi,
+  useAuthContext,
+  usePagination,
+  useToastMessage,
+  useSearch,
+} from "../../hooks";
 
 type Props = {
   mentorId: string;
@@ -38,73 +39,82 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
   const [records, setRecords] = useState<Classroom[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(PAGE_LIMIT);
-  const [eventId, setEventId] = useState<EventId>(EventId.Init);
   const [grossCnt, setGrossCnt] = useState<number>(0);
-  const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
-
+  const [eventId, setEventId] = useState<EventId>(EventId.Init);
   const { signinToken } = useAuthContext();
-  const { callApi, response, isLoading, error } = useCallApi<Classroom[]>([]);
-
+  const { setToastMessage, setErrorToastMessage, ToastMessage } =
+    useToastMessage();
+  const { callApi, response, isLoading, error, GET, PATCH } = useCallApi<
+    Classroom[] | AssignClassroomMentor[]
+  >([]);
   const { paginationRange } = usePagination({
     limit,
     grossCnt,
   });
+  const { queryString, handleSearch } = useSearch(
+    callApi,
+    `classroom/unassign-mentor?id=${mentorId}&`,
+    GET(signinToken.accessToken),
+    setEventId
+  );
 
   /** Call API at init */
   useEffect(() => {
     callApi(
       `classroom/unassign-mentor?id=${mentorId}&page=${page}&limit=${limit}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${signinToken.accessToken}`,
-        },
-      }
+      GET(signinToken.accessToken)
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /** Check reponse */
   useEffect(() => {
-    if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      if (eventId === EventId.Init || eventId === EventId.Paging) {
-        setGrossCnt(response.grossCnt || 0);
-        setRecords(response.data);
-      }
+    if (isResponseSuccessfully(response)) {
       if (eventId === EventId.Assign) {
-        const updated = serializedAssignResponseArray(
-          records,
-          response.data,
-          "classroom"
-        );
+        const updated = serializedAssignResponseArray<
+          Classroom,
+          AssignClassroomMentor
+        >(records, response.data as AssignClassroomMentor[], Prefix.Classroom);
         setGrossCnt(grossCnt - response.data.length);
-        setIsShowToastMsg(true);
+        setToastMessage(Prefix.Classroom, EventId.Assign);
         return setRecords(updated as Classroom[]);
       }
 
-      setIsShowToastMsg(false);
+      if (eventId === EventId.Search) {
+        setGrossCnt(PAGE_LIMIT);
+      } else {
+        setGrossCnt(response.grossCnt || 0);
+      }
+
+      setRecords(response.data as Classroom[]);
+    } else {
+      if (error) {
+        setEventId(EventId.Init);
+        setErrorToastMessage(error.message);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId, response]);
+  }, [response, error]);
+
+  console.log({ records });
 
   /** Handle assign one classroom per request */
-  const handleAssign = useCallback((value: string) => {
-    const data = {
-      selectedIds: value.split(","),
-    };
+  const handleAssign = useCallback(
+    (value: string) => {
+      const data = {
+        selectedIds: value.split(","),
+      };
 
-    callApi(`assign/mentor/assign-classroom/${mentorId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+      callApi(
+        `assign/mentor/assign-classroom/${mentorId}`,
+        PATCH(signinToken.accessToken, data)
+      );
 
-    setEventId(EventId.Assign);
+      setEventId(EventId.Assign);
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    [signinToken.accessToken]
+  );
 
   /** Handle assign multiple students per request */
   const handleAssignAll = useCallback(
@@ -113,35 +123,17 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
         selectedIds: values.checked,
       };
 
-      callApi(`assign/mentor/assign-classroom/${mentorId}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${signinToken.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      callApi(
+        `assign/mentor/assign-classroom/${mentorId}`,
+        PATCH(signinToken.accessToken, data)
+      );
 
       setEventId(EventId.Assign);
+      formikBag.resetForm();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [signinToken.accessToken]
   );
-
-  /** Get response status */
-  const toastMsgObj = useMemo(() => {
-    if (error) {
-      return {
-        status: error.status,
-        msg: error.message,
-      };
-    }
-
-    return {
-      status: response.status,
-      msg: getResponeMsg("classroom", eventId),
-    };
-  }, [error, response.status, eventId]);
 
   /** Formik */
   const formikBag = useFormik({
@@ -164,12 +156,7 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
       setEventId(EventId.Paging);
       callApi(
         `classroom/unassign-mentor?id=${mentorId}&page=${page}&limit=${limit}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${signinToken.accessToken}`,
-          },
-        }
+        GET(signinToken.accessToken)
       );
       setPage(page);
     },
@@ -181,90 +168,115 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
     return formikBag.values.checked && formikBag.values.checked.length > 0;
   }, [formikBag.values.checked]);
 
-  if (isLoading) {
+  const isDisableSearchInput = useMemo(() => {
     return (
-      <>
-        <ComponentLoader />
-      </>
+      eventId !== EventId.Search &&
+      !queryString &&
+      records &&
+      records.length === 0
     );
-  }
-
-  if (records && records.length === 0) {
-    return (
-      <>
-        {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
-        <NoAssign content="All classrooms are assigned" />
-      </>
-    );
-  }
+  }, [records, eventId, queryString]);
 
   return (
     <>
-      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
+      <ToastMessage />
+      <span className="mr-2">
+        <Search
+          handleSearch={handleSearch}
+          value={queryString}
+          disabled={isDisableSearchInput}
+        />
+      </span>
+      {isLoading ? (
+        <>
+          <ComponentLoader />
+        </>
+      ) : (
+        <>
+          <FormikContext.Provider value={formikBag}>
+            <ul className="h-50vh overflow-auto">
+              {records && records.length > 0 ? (
+                records
+                  .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
+                  .slice(0, PAGE_LIMIT)
+                  .map((item, index) => (
+                    <AssignListWrapper key={index}>
+                      <div className="w-full flex justify-between">
+                        <div style={{ flex: "3" }}>
+                          <ListItemAvatar img={item.cover}>
+                            <div>
+                              <Typography
+                                text={item.name}
+                                type="name"
+                                size="normal"
+                              />
+                              <Typography
+                                text={capitalize(item.description || "")}
+                                type="muted"
+                                size="small"
+                              />
+                            </div>
+                          </ListItemAvatar>
+                        </div>
+                        <div style={{ flex: "2" }}>
+                          <Typography text="Mentors" type="name" size="small" />
+                          <Typography
+                            text={`${item.assignedMentor}/25`}
+                            type="muted"
+                            size="small"
+                          />
+                        </div>
+                        <div style={{ flex: "1" }}>
+                          <Form>
+                            <FormikCheckbox name="checked" value={item._id}>
+                              {""}
+                            </FormikCheckbox>
+                          </Form>
+                        </div>
 
-      <FormikContext.Provider value={formikBag}>
-        <ul className="h-90per overflow-auto">
-          {records &&
-            records.length > 0 &&
-            records
-              .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
-              .slice(0, PAGE_LIMIT)
-              .map((item, index) => (
-                <AssignListWrapper key={index}>
-                  <ListItemAvatar img={item.cover}>
-                    <div className="w-64">
-                      <Typography text={item.name} type="name" size="normal" />
-                      <Typography
-                        text={capitalize(item.description || "")}
-                        type="muted"
-                        size="small"
-                      />
-                    </div>
-                  </ListItemAvatar>
-                  <div className="w-16">
-                    <Typography text="Mentors" type="name" size="small" />
-                    <Typography
-                      text={`${item.assignedMentor}/25`}
-                      type="muted"
-                      size="small"
-                    />
-                  </div>
-                  <Form>
-                    <FormikCheckbox name="checked" value={item._id}>
-                      {""}
-                    </FormikCheckbox>
-                  </Form>
-                  <AssignListItemControl
-                    handleAssign={() => handleAssign(item._id)}
-                    setEventId={setEventId}
-                    name={item.name}
-                  />
-                </AssignListWrapper>
-              ))}
-        </ul>
-        <div className="">
-          <Pagination
-            paginationRange={paginationRange}
-            currentPage={page}
-            handlePaging={handlePaging}
-          />
-        </div>
-        <div style={{ marginTop: "-32px" }}>
-          <ConfirmModal
-            title="Confirm"
-            label="Assign all"
-            handleSubmit={handleSubmit}
-            setEventId={setEventId}
-            disabled={!isChecked}
-          >
-            <Typography
-              text={`Assign all selected students?`}
-              type="name"
-              size="normal"
-            />
-          </ConfirmModal>
-        </div>
-      </FormikContext.Provider>
+                        <AssignListItemControl
+                          handleAssign={() => handleAssign(item._id)}
+                          setEventId={setEventId}
+                          name={item.name}
+                        />
+                      </div>
+                    </AssignListWrapper>
+                  ))
+              ) : (
+                <div className="flex justify-center items-center place-items-center relative p-4">
+                  {eventId === EventId.Search || queryString ? (
+                    <div>No result was found.</div>
+                  ) : (
+                    <div>All classsrooms are assigned.</div>
+                  )}
+                </div>
+              )}
+            </ul>
+            <div className="">
+              <Pagination
+                paginationRange={paginationRange}
+                currentPage={page}
+                handlePaging={handlePaging}
+              />
+            </div>
+            <div style={{ marginTop: "-2.6rem" }}>
+              <ConfirmModal
+                title="Confirm"
+                label="Assign all"
+                handleSubmit={handleSubmit}
+                setEventId={setEventId}
+                disabled={!isChecked}
+              >
+                <Typography
+                  text={`Assign all selected students?`}
+                  type="name"
+                  size="normal"
+                />
+              </ConfirmModal>
+            </div>
+          </FormikContext.Provider>
+        </>
+      )}
     </>
   );
 };

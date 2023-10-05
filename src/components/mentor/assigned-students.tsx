@@ -8,22 +8,24 @@ import {
   UnAssignListItemControl,
   FormikCheckbox,
   ComponentLoader,
-  NoAssign,
   ConfirmModal,
-  ToastMsgWrapper,
   Pagination,
+  Search,
 } from "../../commons/components";
 import { isBefore } from "../../commons/date-func";
-import { EventId, PAGE_LIMIT } from "../../commons/constants";
+import { EventId, PAGE_LIMIT, Prefix } from "../../commons/constants";
 import {
-  getResponeMsg,
   getStatus,
   isResponseSuccessfully,
-  serializedDeleteResponseArray,
+  serializedUnassignResponseArray,
 } from "../../commons/utils";
-import useCallApi from "../../hooks/useCallApi";
-import { useAuthContext } from "../../hooks/useAuthContext";
-import usePagination from "../../hooks/usePagination";
+import {
+  useCallApi,
+  useAuthContext,
+  usePagination,
+  useToastMessage,
+  useSearch,
+} from "../../hooks";
 
 type Props = {
   mentorId: string;
@@ -37,30 +39,30 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
   const [records, setRecords] = useState<AssignStudentMentor[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(PAGE_LIMIT);
-  const [eventId, setEventId] = useState<EventId>(EventId.Init);
   const [grossCnt, setGrossCnt] = useState<number>(0);
-  const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
-
+  const [eventId, setEventId] = useState<EventId>(EventId.Init);
   const { signinToken } = useAuthContext();
-  const { callApi, response, isLoading, error } = useCallApi<
+  const { setToastMessage, setErrorToastMessage, ToastMessage } =
+    useToastMessage();
+  const { callApi, response, isLoading, error, GET, PATCH } = useCallApi<
     AssignStudentMentor[]
   >([]);
-
   const { paginationRange } = usePagination({
     limit,
     grossCnt,
   });
+  const { queryString, handleSearch } = useSearch(
+    callApi,
+    `assign/mentor/student-to-mentor?id=${mentorId}&`,
+    GET(signinToken.accessToken),
+    setEventId
+  );
 
   /** Call API at init */
   useEffect(() => {
     callApi(
       `assign/mentor/student-to-mentor?id=${mentorId}&page=${page}&limit=${limit}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${signinToken.accessToken}`,
-        },
-      }
+      GET(signinToken.accessToken)
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -68,76 +70,69 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
   /** Check reponse */
   useEffect(() => {
     if (isResponseSuccessfully(response)) {
-      if (eventId === EventId.Init || eventId === EventId.Paging) {
-        setGrossCnt(response.grossCnt || 0);
-        setRecords(response.data);
-      }
-
       if (eventId === EventId.Unassign) {
-        const updated = serializedDeleteResponseArray(records, response.data);
+        const updated = serializedUnassignResponseArray<AssignStudentMentor>(
+          records,
+          response.data
+        );
         setGrossCnt(grossCnt - response.data.length);
-        setIsShowToastMsg(true);
+        setToastMessage(Prefix.Student, EventId.Unassign);
+        setEventId(EventId.Init);
         return setRecords(updated as AssignStudentMentor[]);
       }
 
-      setIsShowToastMsg(false);
+      if (eventId === EventId.Search) {
+        setGrossCnt(PAGE_LIMIT);
+      } else {
+        setGrossCnt(response.grossCnt || 0);
+      }
+
+      setRecords(response.data);
+    } else {
+      if (error) {
+        setEventId(EventId.Init);
+        setErrorToastMessage(error.message);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId, response]);
+  }, [response, error]);
 
   /** handle unassign one student per request */
-  const handleUnAssign = useCallback((value: string) => {
-    const data = {
-      assignedIds: value.split(","),
-    };
+  const handleUnAssign = useCallback(
+    (value: string) => {
+      const data = {
+        assignedIds: value.split(","),
+      };
 
-    callApi(`assign/mentor/unassign-student/${mentorId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+      callApi(
+        `assign/mentor/unassign-student/${mentorId}`,
+        PATCH(signinToken.accessToken, data)
+      );
 
-    setEventId(EventId.Unassign);
+      setEventId(EventId.Unassign);
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    [signinToken.accessToken]
+  );
 
   /** handle unassing multiple students per request */
-  const handleUnAssignAll = useCallback((values: FormikProps) => {
-    const data = {
-      assignedIds: values.checked,
-    };
-
-    callApi(`assign/mentor/unassign-student/${mentorId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    setEventId(EventId.Unassign);
-    // alert(JSON.stringify(values, null, 2));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /** Get response status */
-  const toastMsgObj = useMemo(() => {
-    if (error) {
-      return {
-        status: error.status,
-        msg: error.message,
+  const handleUnAssignAll = useCallback(
+    (values: FormikProps) => {
+      const data = {
+        assignedIds: values.checked,
       };
-    }
 
-    return {
-      status: response.status,
-      msg: getResponeMsg("student", eventId),
-    };
-  }, [error, response.status, eventId]);
+      callApi(
+        `assign/mentor/unassign-student/${mentorId}`,
+        PATCH(signinToken.accessToken, data)
+      );
+
+      setEventId(EventId.Unassign);
+      formikBag.resetForm();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signinToken.accessToken]
+  );
 
   /** Formik */
   const formikBag = useFormik({
@@ -160,12 +155,7 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
       setEventId(EventId.Paging);
       callApi(
         `assign/mentor/student-to-mentor?id=${mentorId}&page=${page}&limit=${limit}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${signinToken.accessToken}`,
-          },
-        }
+        GET(signinToken.accessToken)
       );
       setPage(page);
     },
@@ -177,96 +167,112 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
     return formikBag.values.checked && formikBag.values.checked.length > 0;
   }, [formikBag.values.checked]);
 
-  if (isLoading) {
+  const isDisableSearchInput = useMemo(() => {
     return (
-      <>
-        <ComponentLoader />
-      </>
+      eventId !== EventId.Search &&
+      !queryString &&
+      records &&
+      records.length === 0
     );
-  }
-
-  if (records && records.length === 0) {
-    return (
-      <>
-        {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
-        <NoAssign content="Mentor has no assinged student" />
-      </>
-    );
-  }
+  }, [records, eventId, queryString]);
 
   return (
     <>
-      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
-
-      <FormikContext.Provider value={formikBag}>
-        <ul className="h-90per overflow-auto">
-          {records &&
-            records.length > 0 &&
-            records
-              .sort((a, b) => (isBefore(a.assignedAt, b.assignedAt) ? 1 : -1))
-              .slice(0, PAGE_LIMIT)
-              .map((item, index) => (
-                <AssignListWrapper key={index}>
-                  <ListItemAvatar img={item.studentAvatar}>
-                    <div className="w-64">
-                      <Typography
-                        text={item.studentName}
-                        type="name"
-                        size="normal"
+      <ToastMessage />
+      <span className="mr-2">
+        <Search
+          handleSearch={handleSearch}
+          value={queryString}
+          disabled={isDisableSearchInput}
+        />
+      </span>
+      {isLoading ? (
+        <>
+          <ComponentLoader />
+        </>
+      ) : (
+        <>
+          <FormikContext.Provider value={formikBag}>
+            <ul className="h-50vh overflow-auto">
+              {records && records.length > 0 ? (
+                records
+                  .sort((a, b) =>
+                    isBefore(a.assignedAt, b.assignedAt) ? 1 : -1
+                  )
+                  .slice(0, PAGE_LIMIT)
+                  .map((item, index) => (
+                    <AssignListWrapper key={index}>
+                      <ListItemAvatar img={item.studentAvatar}>
+                        <div>
+                          <Typography
+                            text={item.studentName}
+                            type="name"
+                            size="normal"
+                          />
+                          <Typography
+                            text={`${item.studentId} - ${getStatus(
+                              item.studentStatus
+                            )}`}
+                            type="muted"
+                            size="small"
+                          />
+                        </div>
+                      </ListItemAvatar>
+                      <div className="w-16">
+                        <Typography text="Mentor" type="name" size="small" />
+                        <Typography
+                          text={item.mentorName}
+                          type="muted"
+                          size="small"
+                        />
+                      </div>
+                      <Form>
+                        <FormikCheckbox name="checked" value={item._id}>
+                          {""}
+                        </FormikCheckbox>
+                      </Form>
+                      <UnAssignListItemControl
+                        handleUnAssign={() => handleUnAssign(item._id)}
+                        setEventId={setEventId}
+                        name={item.studentName}
                       />
-                      <Typography
-                        text={`${item.studentId} - ${getStatus(
-                          item.studentStatus
-                        )}`}
-                        type="muted"
-                        size="small"
-                      />
-                    </div>
-                  </ListItemAvatar>
-                  <div className="w-16">
-                    <Typography text="Mentor" type="name" size="small" />
-                    <Typography
-                      text={item.mentorName}
-                      type="muted"
-                      size="small"
-                    />
-                  </div>
-                  <Form>
-                    <FormikCheckbox name="checked" value={item.id}>
-                      {""}
-                    </FormikCheckbox>
-                  </Form>
-                  <UnAssignListItemControl
-                    handleUnAssign={() => handleUnAssign(item.id)}
-                    setEventId={setEventId}
-                    name={item.studentName}
-                  />
-                </AssignListWrapper>
-              ))}
-        </ul>
-        <div className="">
-          <Pagination
-            paginationRange={paginationRange}
-            currentPage={page}
-            handlePaging={handlePaging}
-          />
-        </div>
-        <div style={{ marginTop: "-32px" }}>
-          <ConfirmModal
-            title="Confirm"
-            label="Unassign all"
-            handleSubmit={handleSubmit}
-            setEventId={setEventId}
-            disabled={!isChecked}
-          >
-            <Typography
-              text={`Unassign all selected students?`}
-              type="name"
-              size="normal"
-            />
-          </ConfirmModal>
-        </div>
-      </FormikContext.Provider>
+                    </AssignListWrapper>
+                  ))
+              ) : (
+                <div className="flex justify-center items-center place-items-center relative p-4">
+                  {eventId === EventId.Search || queryString ? (
+                    <div>No result was found.</div>
+                  ) : (
+                    <div>All students are assigned.</div>
+                  )}
+                </div>
+              )}
+            </ul>
+            <div className="">
+              <Pagination
+                paginationRange={paginationRange}
+                currentPage={page}
+                handlePaging={handlePaging}
+              />
+            </div>
+            <div style={{ marginTop: "-2.6rem" }}>
+              <ConfirmModal
+                title="Confirm"
+                label="Unassign all"
+                handleSubmit={handleSubmit}
+                setEventId={setEventId}
+                disabled={!isChecked}
+              >
+                <Typography
+                  text={`Unassign all selected students?`}
+                  type="name"
+                  size="normal"
+                />
+              </ConfirmModal>
+            </div>
+          </FormikContext.Provider>
+        </>
+      )}
     </>
   );
 };

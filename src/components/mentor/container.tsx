@@ -9,193 +9,73 @@ import {
   Pagination,
   Buttons,
   ListWrapper,
-  ToastMsgWrapper,
+  Search,
 } from "../../commons/components";
 import { Mentor, mentorInitial } from "../../commons/model";
 import {
+  checkIsComponentLoading,
   getMentorFilter,
-  getResponeMsg,
-  isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
   serializedPatchResponse,
   storeHistory,
 } from "../../commons/utils";
 import * as Constants from "../../commons/constants";
-import useCallApi from "../../hooks/useCallApi";
-import usePagination from "../../hooks/usePagination";
-import useTitle from "../../hooks/useTitle";
-import { useLoginInfContext } from "../../hooks/useLoginInfContext";
-import { useAuthContext } from "../../hooks/useAuthContext";
+import {
+  useCallApi,
+  usePagination,
+  useTitle,
+  useLoginInfContext,
+  useAuthContext,
+  useToastMessage,
+  useSearch,
+} from "../../hooks";
 import MentorList from "./mentor-list";
-import { createValidationSchema } from "./validatation-schema";
 import { MentorFormikProps, mentorFormikInitial } from "./types";
 import CreateForm from "./create-form";
 import MentorInfo from "./mentor-info";
 import AssignPanel from "./assign-panel";
-import { createValidateSubmission } from "./validate-submission";
 import NoItem from "./no-item";
+import { createValidationSchema } from "./validatation-schema";
+import { createValidateSubmission } from "./validate-submission";
 import { Role, Status } from "./constants";
 
 const Mentor: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [mentor, setMentor] = useState<Mentor>();
   const [filter, setFilter] = useState<string>("0");
-  const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(Constants.PAGE_LIMIT);
   const [grossCnt, setGrossCnt] = useState<number>(0);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
-
   const { signinToken } = useAuthContext();
   const { loginInf } = useLoginInfContext();
   const { setTitle } = useTitle();
-  const { callApi, response, isLoading, error } = useCallApi<Mentor[] | Mentor>(
-    [] || mentorInitial
-  );
-
+  const { setToastMessage, setErrorToastMessage, ToastMessage } =
+    useToastMessage();
+  const { callApi, response, isLoading, error, GET, POST, PATCH, DELETE } =
+    useCallApi<Mentor[] | Mentor>([] || mentorInitial);
   const { paginationRange } = usePagination({
     limit,
     grossCnt,
   });
+  const { queryString, handleSearch } = useSearch(
+    callApi,
+    `mentor?id=${loginInf.sub}&role=${filter}&`,
+    GET(signinToken.accessToken),
+    setEventId
+  );
 
-  /** Get mentor list at init */
-  useEffect(() => {
-    storeHistory("/mentor");
-    setTitle("Mentors");
-    callApi(
-      `mentor?id=${loginInf.sub}&role=${filter}&page=${page}&limit=${limit}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${signinToken.accessToken}`,
-        },
-      }
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loginInf.sub, filter]);
-
-  /** Check API response and set mentors data base on event type*/
-  useEffect(() => {
-    if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      formikBag.resetForm();
-
-      if (eventId === Constants.EventId.Add) {
-        setGrossCnt(grossCnt + 1);
-        setIsShowToastMsg(true);
-        return setMentors(mentors.concat(response.data));
-      }
-
-      if (eventId === Constants.EventId.Update) {
-        const updated = serializedPatchResponse(mentors, response.data);
-        setMentor(response.data as Mentor);
-        setIsShowToastMsg(true);
-        return setMentors(updated);
-      }
-
-      if (eventId === Constants.EventId.Delete) {
-        const updated = serializedDeleteResponse(mentors, response.data);
-        setGrossCnt(grossCnt - 1);
-        setIsShowToastMsg(true);
-        return setMentors(updated as Mentor[]);
-      }
-
-      setGrossCnt(response.grossCnt || 0);
-      return setMentors(response.data as Mentor[]);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
-
-  useEffect(() => {
-    if (eventId === Constants.EventId.Update) return;
-    if (mentors && mentors.length > 0) {
-      setMentor(mentors[0]);
-    }
-  }, [mentors, eventId]);
-
-  /** Create Submit */
-  const onSubmit = useCallback((values: MentorFormikProps) => {
-    const data = {
-      email: values.email,
-      name: values.name,
-      password: values.password,
-      passwordConfirm: values.passwordConfirm,
-      languages: values.languages.replace(/' '/g, "").split(","),
-      education: values.education,
-      specialized: values.specialized,
-      status: Status.Active,
-      avatar: values.avatar,
-      roles: values.roles,
-    };
-
-    callApi("mentor", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /** Update Submit */
-  const onUpdate = useCallback((values: MentorFormikProps) => {
-    const data = {
-      email: values.email,
-      name: values.name,
-      languages: values.languages.replace(/' '/g, "").split(","),
-      education: values.education,
-      specialized: values.specialized,
-      status: values.status,
-      avatar: values.avatar,
-      roles: values.roles,
-    };
-
-    callApi(`mentor/${values.id}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    formikBag.resetForm();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /** Get response status */
-  const toastMsgObj = useMemo(() => {
-    if (error) {
-      return {
-        status: error.status,
-        msg: error.message,
-      };
-    }
-
-    return {
-      status: response.status,
-      msg: getResponeMsg("mentor", eventId),
-    };
-  }, [error, response.status, eventId]);
-
-  /** Set component loading screen*/
+  /** Check loading style */
   const isComponentLoading = useMemo(() => {
-    return (
-      isLoading &&
-      (eventId === Constants.EventId.Add ||
-        eventId === Constants.EventId.Update ||
-        eventId === Constants.EventId.Delete ||
-        eventId === Constants.EventId.Paging)
-    );
+    return checkIsComponentLoading(eventId, isLoading);
   }, [isLoading, eventId]);
-  /** Formik initial values*/
+
+  /** Declare formik initial values */
   const initialValues: MentorFormikProps = useMemo(() => {
-    if (mentor && eventId === Constants.EventId.Update)
+    if (mentor)
       return {
         id: mentor._id,
         email: mentor.email,
@@ -209,7 +89,119 @@ const Mentor: FC = () => {
       };
 
     return mentorFormikInitial;
-  }, [mentor, eventId]);
+  }, [mentor]);
+
+  /** Call init Api */
+  useEffect(() => {
+    setEventId(Constants.EventId.Init);
+    storeHistory("/mentor");
+    setTitle("Mentors");
+    callApi(
+      `mentor?id=${loginInf.sub}&role=${filter}&page=${page}&limit=${limit}`,
+      GET(signinToken.accessToken)
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loginInf.sub, filter]);
+
+  /** Check API response and set mentors data base on event type*/
+  useEffect(() => {
+    formikBag.resetForm();
+    if (isResponseSuccessfully(response)) {
+      if (eventId === Constants.EventId.Add) {
+        setGrossCnt(grossCnt + 1);
+        setToastMessage(Constants.Prefix.Mentor, Constants.EventId.Add);
+        setEventId(Constants.EventId.None);
+        return setMentors(mentors.concat(response.data));
+      }
+
+      if (eventId === Constants.EventId.Update) {
+        const updated = serializedPatchResponse<Mentor>(
+          mentors,
+          response.data as Mentor
+        );
+        setMentor(response.data as Mentor);
+        setToastMessage(Constants.Prefix.Mentor, Constants.EventId.Update);
+        setEventId(Constants.EventId.None);
+        return setMentors(updated);
+      }
+
+      if (eventId === Constants.EventId.Delete) {
+        const updated = serializedDeleteResponse<Mentor>(
+          mentors,
+          response.data as Mentor
+        );
+        setGrossCnt(grossCnt - 1);
+        setToastMessage(Constants.Prefix.Mentor, Constants.EventId.Delete);
+        setEventId(Constants.EventId.None);
+        return setMentors(updated as Mentor[]);
+      }
+
+      if (eventId === Constants.EventId.Search) {
+        setGrossCnt(Constants.PAGE_LIMIT);
+      } else {
+        setGrossCnt(response.grossCnt || 0);
+      }
+
+      return setMentors(response.data as Mentor[]);
+    } else {
+      if (error) {
+        setEventId(Constants.EventId.None);
+        setErrorToastMessage(error.message);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [response, error]);
+
+  /** Get the 1st mentor for the init display/switch view on left panel */
+  useEffect(() => {
+    if (eventId === Constants.EventId.Init && mentors && mentors.length > 0) {
+      setMentor(mentors[0]);
+    }
+  }, [mentors, eventId, filter]);
+
+  /** Create Submit */
+  const onCreate = useCallback(
+    (values: MentorFormikProps) => {
+      const data = {
+        email: values.email,
+        name: values.name,
+        password: values.password,
+        passwordConfirm: values.passwordConfirm,
+        languages: values.languages.replace(/' '/g, "").split(","),
+        education: values.education,
+        specialized: values.specialized,
+        status: Status.Active,
+        avatar: values.avatar,
+        roles: values.roles,
+      };
+
+      callApi("mentor", POST(signinToken.accessToken, data));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signinToken.accessToken]
+  );
+
+  /** Update Submit */
+  const onUpdate = useCallback(
+    (values: MentorFormikProps) => {
+      const data = {
+        email: values.email,
+        name: values.name,
+        languages: values.languages.replace(/' '/g, "").split(","),
+        education: values.education,
+        specialized: values.specialized,
+        status: values.status,
+        avatar: values.avatar,
+        roles: values.roles,
+      };
+
+      callApi(`mentor/${values.id}`, PATCH(signinToken.accessToken, data));
+
+      formikBag.resetForm();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signinToken.accessToken]
+  );
 
   /** Formik bag */
   const formikBag = useFormik({
@@ -218,7 +210,7 @@ const Mentor: FC = () => {
     validateOnBlur: false,
     validationSchema: () => createValidationSchema(eventId),
     onSubmit: (values) =>
-      eventId === Constants.EventId.Add ? onSubmit(values) : onUpdate(values),
+      eventId === Constants.EventId.Add ? onCreate(values) : onUpdate(values),
   });
 
   /** Set formik initial values */
@@ -254,29 +246,29 @@ const Mentor: FC = () => {
   };
 
   /** Handle remove mentor */
-  const handleRemove = useCallback((mentorId: string) => {
-    callApi(`mentor/${mentorId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-      },
-    });
+  const handleRemove = useCallback(
+    (mentorId: string) => {
+      callApi(`mentor/${mentorId}`, DELETE(signinToken.accessToken));
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    [signinToken.accessToken]
+  );
 
   /** Handle paging */
-  const handlePaging = useCallback((page: number) => {
-    setEventId(Constants.EventId.Paging);
-    callApi(`mentor?page=${page}&limit=${limit}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-      },
-    });
-    setPage(page);
+  const handlePaging = useCallback(
+    (page: number) => {
+      setEventId(Constants.EventId.Paging);
+      callApi(
+        `mentor?id=${loginInf.sub}&role=${filter}&page=${page}&limit=${limit}`,
+        GET(signinToken.accessToken)
+      );
+      setPage(page);
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    [signinToken.accessToken]
+  );
 
+  /** Loading screen */
   if (isLoading && eventId === Constants.EventId.Init) {
     return (
       <>
@@ -285,7 +277,8 @@ const Mentor: FC = () => {
     );
   }
 
-  if (mentors && mentors.length === 0) {
+  /** If no have data in response on init display */
+  if (mentors && mentors.length === 0 && eventId === Constants.EventId.Init) {
     return (
       <NoItem>
         <FormikContext.Provider value={formikBag}>
@@ -304,8 +297,7 @@ const Mentor: FC = () => {
 
   return (
     <>
-      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
-
+      <ToastMessage />
       {/* Left Panel */}
       <div className="relative w-1/4">
         <NavigatePanel
@@ -342,7 +334,6 @@ const Mentor: FC = () => {
               <MentorList
                 mentors={mentors}
                 selectedId={mentor ? mentor._id : ""}
-                limit={limit}
                 handleUpdate={handleUpdate}
                 handleRemove={handleRemove}
                 handleSelect={handleSelect}
@@ -351,6 +342,9 @@ const Mentor: FC = () => {
             </ListWrapper>
           )}
           <AbsContainer variant="top-right">
+            <span className="mr-2">
+              <Search handleSearch={handleSearch} value={queryString} />
+            </span>
             <span className="mr-2">
               <Buttons.SwitchButton filter={filter} setFilter={setFilter} />
             </span>

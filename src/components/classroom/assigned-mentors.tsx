@@ -16,7 +16,7 @@ import { EventId } from "../../commons/constants";
 import {
   getStatus,
   isResponseSuccessfully,
-  serializedDeleteResponseArray,
+  serializedUnassignResponseArray,
 } from "../../commons/utils";
 import useCallApi from "../../hooks/useCallApi";
 import { useAuthContext } from "../../hooks/useAuthContext";
@@ -62,7 +62,7 @@ const AssignedMentorList: FC<Props> = ({ classroomId }) => {
       }
 
       if (eventId === EventId.Unassign) {
-        const updated = serializedDeleteResponseArray(records, response.data);
+        const updated = serializedUnassignResponseArray(records, response.data);
         return setRecords(updated as AssignClassroomMentor[]);
       }
     }

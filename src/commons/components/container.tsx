@@ -115,3 +115,12 @@ export const FullContainer: React.FC<Props> = ({ children }) => {
 export const ListWrapper: React.FC<Props> = ({ children }) => {
   return <div className="overflow-y-auto">{children}</div>;
 };
+
+/** No List Data */
+export const ListEmpty: React.FC = () => {
+  return (
+    <div className="flex justify-center items-center place-items-center h-70vh relative p-4">
+      <div>No data</div>
+    </div>
+  );
+};

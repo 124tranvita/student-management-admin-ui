@@ -9,12 +9,9 @@ import {
   Pagination,
   Buttons,
   ListWrapper,
-  ToastMsgWrapper,
 } from "../../commons/components";
 import { Student, studentInitial } from "../../commons/model";
 import {
-  getResponeMsg,
-  isHttpStatusCode401,
   isNotNullData,
   isResponseSuccessfully,
   serializedDeleteResponse,
@@ -27,6 +24,7 @@ import { dateFormatter } from "../../commons/time-func";
 import usePagination from "../../hooks/usePagination";
 import useTitle from "../../hooks/useTitle";
 import { useAuthContext } from "../../hooks/useAuthContext";
+import { useToastMessage } from "../../hooks/useToastMessage";
 import StudentList from "./student-list";
 import { createValidationSchema } from "./validatation-schema";
 import { StudentFormikProps, studentFormikInitial } from "./types";
@@ -39,16 +37,16 @@ import AssignPanel from "./assign-panel";
 const Student: FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [student, setStudent] = useState<Student>();
-  const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(Constants.PAGE_LIMIT);
   const [grossCnt, setGrossCnt] = useState<number>(0);
   const [eventId, setEventId] = useState<Constants.EventId>(
     Constants.EventId.Init
   );
-
   const { signinToken } = useAuthContext();
   const { setTitle } = useTitle();
+  const { setToastMessage, setErrorToastMessage, ToastMessage } =
+    useToastMessage();
   const { callApi, response, isLoading, error } = useCallApi<
     Student[] | Student
   >([] || studentInitial);
@@ -75,31 +73,33 @@ const Student: FC = () => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
       if (eventId === Constants.EventId.Add) {
         setGrossCnt(grossCnt + 1);
-        setIsShowToastMsg(true);
+        setToastMessage(Constants.Prefix.Student, Constants.EventId.Add);
+        setEventId(Constants.EventId.None);
         return setStudents(students.concat(response.data));
       }
 
       if (eventId === Constants.EventId.Update) {
         const updated = serializedPatchResponse(students, response.data);
         setStudent(response.data as Student);
-        setIsShowToastMsg(true);
-
+        setToastMessage(Constants.Prefix.Student, Constants.EventId.Update);
+        setEventId(Constants.EventId.None);
         return setStudents(updated);
       }
 
       if (eventId === Constants.EventId.Delete) {
         const updated = serializedDeleteResponse(students, response.data);
         setGrossCnt(grossCnt - 1);
-        setIsShowToastMsg(true);
+        setToastMessage(Constants.Prefix.Student, Constants.EventId.Delete);
+        setEventId(Constants.EventId.None);
         return setStudents(updated);
       }
 
       setGrossCnt(response.grossCnt || 0);
       return setStudents(response.data as Student[]);
     } else {
-      if (error && isHttpStatusCode401(error)) {
-        // setEventId(Constants.EventId.RenewToken);
-        // statusCode401Handler(signinToken.refreshToken, dispatchAuth);
+      if (error) {
+        setEventId(Constants.EventId.None);
+        setErrorToastMessage(error.message);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,21 +143,6 @@ const Student: FC = () => {
     formikBag.resetForm();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /** Get response status */
-  const toastMsgObj = useMemo(() => {
-    if (error) {
-      return {
-        status: error.status,
-        msg: error.message,
-      };
-    }
-
-    return {
-      status: response.status,
-      msg: getResponeMsg("student", eventId),
-    };
-  }, [error, response.status, eventId]);
 
   /** Update Submit */
   const onUpdate = useCallback((values: StudentFormikProps) => {
@@ -308,7 +293,7 @@ const Student: FC = () => {
 
   return (
     <>
-      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
+      <ToastMessage />
       {/* Left Panel */}
       <div className="relative w-1/4">
         <NavigatePanel

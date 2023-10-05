@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Error, Response } from "./model";
+import { Error, Response, SerializedTypeExtends } from "./model";
 import { EventId, HttpStatusCode, ResponseResult } from "./constants";
 
 export const classNames = (
@@ -48,33 +48,56 @@ export const getStatus = (value: string) => {
   return value === "1" ? "Active" : value === "0" ? "Inactive" : "Busy";
 };
 
-export const getArrayDiff = (array1: any[], array2: any[]) => {
+export const getMentorFilter = (value: string): string => {
+  return value === "0" ? "Mentor" : "Admin";
+};
+
+type Ids = {
+  _id: string;
+};
+
+export const getUnassignArrayDiff = <T extends Ids>(
+  array1: T[],
+  array2: T[]
+) => {
   return array1.filter(
     (object1) => !array2.some((object2) => object1._id === object2._id)
   );
 };
 
-export const getMentorFilter = (value: string): string => {
-  return value === "0" ? "Mentor" : "Admin";
-};
-
-export const getAssignArrayDiff = (
-  array1: any[],
-  array2: any[],
-  model: string
+export const getAssignArrayDiff = <
+  T extends Ids,
+  K extends SerializedTypeExtends
+>(
+  records: T[],
+  response: K[],
+  key: string
 ) => {
-  return array1.filter(
-    (object1) => !array2.some((object2) => object1._id === object2[model])
+  return records.filter((object1) =>
+    response.every((object2) => object1._id !== object2[key as keyof K])
   );
 };
 
-export const serializedPatchResponse = <T>(
-  data: any | T[],
-  result: any | T
+export const serializedAssignResponseArray = <
+  T extends Ids,
+  K extends SerializedTypeExtends
+>(
+  records: T[],
+  response: K[],
+  key: string
 ) => {
-  const serialized = data.map((item: any | T) => {
-    if (item._id === result._id) {
-      item = result;
+  const serialized = getAssignArrayDiff<T, K>(records, response, key);
+
+  return serialized;
+};
+
+export const serializedPatchResponse = <T extends Ids>(
+  records: T[],
+  response: T
+) => {
+  const serialized = records.map((item: T) => {
+    if (item._id === response._id) {
+      item = response;
     }
     return item;
   });
@@ -82,35 +105,25 @@ export const serializedPatchResponse = <T>(
   return serialized;
 };
 
-export const serializedDeleteResponse = <T>(
-  data: any | T[],
-  result: any | T
+export const serializedDeleteResponse = <T extends Ids>(
+  records: T[],
+  response: T
 ) => {
-  const serialized = data.filter((item: any | T) => item._id !== result._id);
+  const serialized = records.filter((item: T) => item._id !== response._id);
 
   return serialized;
 };
 
-export const serializedDeleteResponseArray = <T>(
-  data: any[] | T[],
-  result: any[] | T[]
+export const serializedUnassignResponseArray = <T extends Ids>(
+  records: T[],
+  response: T[]
 ) => {
-  const serialized = getArrayDiff(data, result);
+  const serialized = getUnassignArrayDiff(records, response);
 
   return serialized;
 };
 
-export const serializedAssignResponseArray = <T>(
-  data: any[] | T[],
-  result: any[] | T[],
-  model: string
-) => {
-  const serialized = getAssignArrayDiff(data, result, model);
-
-  return serialized;
-};
-
-export const getResponeMsg = (prefix: string, eventId?: EventId) => {
+export const getToastMsg = (prefix: string, eventId: EventId) => {
   switch (eventId) {
     case EventId.Add:
       return `New ${prefix} has been added`;
@@ -136,4 +149,18 @@ export const getStoreHistory = () => {
   const history = localStorage.getItem("path");
 
   return history ? history : "";
+};
+
+export const checkIsComponentLoading = (
+  eventId: EventId,
+  isLoading: boolean
+) => {
+  return (
+    isLoading &&
+    (eventId === EventId.Add ||
+      eventId === EventId.Update ||
+      eventId === EventId.Delete ||
+      eventId === EventId.Paging ||
+      eventId === EventId.Search)
+  );
 };

@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useCallback, useReducer } from "react";
 import { Response, Error } from "../commons/model";
 import * as Constants from "./constants";
 
@@ -55,6 +55,46 @@ const useCallApi = <T,>(initData: T) => {
     },
   });
 
+  const GET = useCallback((accessToken: string) => {
+    return {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
+  }, []);
+
+  const POST = useCallback(<T,>(accessToken: string, data: T) => {
+    return {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    };
+  }, []);
+
+  const PATCH = useCallback(<T,>(accessToken: string, data: T) => {
+    return {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    };
+  }, []);
+
+  const DELETE = useCallback((accessToken: string) => {
+    return {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
+  }, []);
+
   const callApi = async (path: string, options: object) => {
     try {
       // const URL = import.meta.env.VITE_API_BASE_URL + path;
@@ -104,6 +144,10 @@ const useCallApi = <T,>(initData: T) => {
     response: state.response,
     isLoading: state.isLoading,
     error: state.error,
+    GET,
+    POST,
+    PATCH,
+    DELETE,
   };
 };
 

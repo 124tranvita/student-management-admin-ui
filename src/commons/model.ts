@@ -101,7 +101,7 @@ export type Response<T> = {
 };
 
 export type AssignStudentMentor = {
-  id: string;
+  _id: string;
   assignedAt: string;
   studentId: string;
   studentName: string;
@@ -109,11 +109,11 @@ export type AssignStudentMentor = {
   studentAvatar: string;
   mentorName: string;
   mentor: Mentor;
-  student: Student;
+  student: string;
 };
 
 export const assignStudentMentorInitial: AssignStudentMentor = {
-  id: "",
+  _id: "",
   assignedAt: "",
   studentId: "",
   studentName: "",
@@ -121,7 +121,7 @@ export const assignStudentMentorInitial: AssignStudentMentor = {
   studentAvatar: "",
   mentorName: "",
   mentor: mentorInitial,
-  student: studentInitial,
+  student: "",
 };
 
 export type AssignClassroomMentor = {
@@ -185,3 +185,20 @@ export type Error = {
   path: string;
   message: string;
 };
+
+export type ToastMsgObj = {
+  status: string;
+  msg: string;
+};
+
+export const initToastMsgObj = {
+  status: "",
+  msg: "",
+};
+
+export type SerializedTypeExtends =
+  | Mentor
+  | Student
+  | Classroom
+  | AssignStudentMentor
+  | AssignClassroomMentor;

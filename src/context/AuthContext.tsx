@@ -48,6 +48,8 @@ export const AuthContextProvider: FC<Props> = ({ children }) => {
     signinToken: signinTokenInitial,
   });
 
+  console.log({ Auth: state });
+
   const getSigninTokenFromLocalStorage = () => {
     try {
       const accessToken = JSON.parse(

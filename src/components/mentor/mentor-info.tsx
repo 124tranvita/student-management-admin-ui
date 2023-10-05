@@ -32,7 +32,8 @@ const MentorInfo: FC<MentorInfoProps> = ({ mentor }) => {
           />
         </div>
       )}
-      {mentor.languages[0] &&
+      {mentor.languages &&
+        mentor.languages.length > 0 &&
         mentor.languages.map((item: string, index: number) => (
           <HashDiv key={index} value={item} />
         ))}

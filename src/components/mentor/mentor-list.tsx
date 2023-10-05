@@ -4,6 +4,7 @@ import {
   Typography,
   ListItemAvatar,
   ListItemWrapper,
+  ListEmpty,
 } from "../../commons/components";
 import { ListItemControl } from "../../commons/components/list-item";
 import { isBefore } from "../../commons/date-func";
@@ -14,7 +15,6 @@ import UpdateForm from "./update-form";
 type Props = {
   mentors: Mentor[];
   selectedId: string;
-  limit: number;
   handleUpdate: (value: string) => void;
   handleRemove: (value: string) => void;
   handleSelect: (value: string) => void;
@@ -23,19 +23,24 @@ type Props = {
 const MentorList: FC<Props> = ({
   mentors,
   selectedId,
-  limit,
   handleUpdate,
   handleRemove,
   handleSelect,
   setEventId,
 }) => {
+  if (mentors && mentors.length === 0) {
+    return (
+      <>
+        <ListEmpty />
+      </>
+    );
+  }
   return (
-    <ul className="h-full">
+    <ul style={{ height: "75vh" }}>
       {mentors &&
         mentors.length > 0 &&
         mentors
           .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
-          .slice(0, limit)
           .map((item, index) => (
             <ListItemWrapper
               key={index}

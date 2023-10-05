@@ -78,18 +78,17 @@ export const AddFormModal: React.FC<
 
   const closeModal = () => {
     setIsOpen(false);
-    setEventId(EventId.None);
     formikBag.setErrors({});
     formikBag.resetForm();
   };
 
   const openModal = () => {
-    setEventId(EventId.Add);
     setIsOpen(true);
   };
 
   const onClickEvent = () => {
     handleSubmit();
+    setEventId(EventId.Add);
 
     if (!isNotNullData(formikBag.errors)) {
       setIsOpen(false);
@@ -158,15 +157,23 @@ export const UpdateFormModal: React.FC<
   );
 
   function closeModal() {
-    setIsOpen(false);
     setEventId(EventId.None);
+    setIsOpen(false);
     formikBag.setTouched({}, false);
   }
 
   function openModal() {
-    setEventId(EventId.Update);
     setIsOpen(true);
   }
+
+  const onClickEvent = () => {
+    handleSubmit();
+    setEventId(EventId.Update);
+
+    if (!isNotNullData(formikBag.errors)) {
+      setIsOpen(false);
+    }
+  };
 
   return (
     <DialogModal
@@ -188,7 +195,7 @@ export const UpdateFormModal: React.FC<
             type="submit"
             label="Update"
             variant="primary"
-            onClick={handleSubmit}
+            onClick={onClickEvent}
           />
           <Button
             type="button"
@@ -382,12 +389,14 @@ export const UnassignFormModal: React.FC<
 
 /** General Modal */
 type AssignModalProps = {
+  children: React.ReactNode;
+  title: string;
   icon: React.ReactNode;
   label: string;
   isAssign: boolean;
   setIsAssign: (value: boolean) => void;
 };
-export const AssignModal: React.FC<FormModalProps & AssignModalProps> = ({
+export const AssignModal: React.FC<AssignModalProps> = ({
   children,
   icon,
   title,

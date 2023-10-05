@@ -6,6 +6,7 @@ export default {
       height: {
         "card-classroom-img": "202px",
         "90per": "90%",
+        "45vh": "45vh",
         "50vh": "50vh",
         "60vh": "60vh",
         "62vh": "62vh",
@@ -16,6 +17,7 @@ export default {
       },
       width: {
         "card-classroom-img": "358px",
+        "90per": "90%",
         "60vw": "60vw",
         "80vw": "80vw",
       },
