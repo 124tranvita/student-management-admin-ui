@@ -6,6 +6,11 @@ import {
   FullContainer,
   ListWrapper,
   ListEmpty,
+  RightContainer,
+  LeftContainer,
+  InfoContainer,
+  CoverContainer,
+  AssignContainer,
 } from "./container";
 import { Card } from "./cards";
 import Typography from "./typography";
@@ -26,6 +31,11 @@ import {
   AssignListWrapper,
   AssignListItemControl,
   UnAssignListItemControl,
+  NoDataPlaceHolder,
+  AssignStudentList,
+  UnassignStudentList,
+  AssignClassroomList,
+  UnassignClassroomList,
 } from "./assign-list";
 import * as Icons from "./icons";
 import * as Buttons from "./buttons";
@@ -69,4 +79,14 @@ export {
   Warning,
   Error,
   ListEmpty,
+  RightContainer,
+  LeftContainer,
+  InfoContainer,
+  CoverContainer,
+  AssignContainer,
+  NoDataPlaceHolder,
+  AssignStudentList,
+  UnassignStudentList,
+  AssignClassroomList,
+  UnassignClassroomList,
 };

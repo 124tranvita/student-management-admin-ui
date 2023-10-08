@@ -1,21 +1,16 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
-import { Form, FormikContext, useFormik } from "formik";
+import { FormikContext, useFormik } from "formik";
 import { AssignClassroomMentor, Classroom } from "../../commons/model";
 import {
   Typography,
-  ListItemAvatar,
-  AssignListWrapper,
-  AssignListItemControl,
-  FormikCheckbox,
-  ComponentLoader,
   ConfirmModal,
   Pagination,
   Search,
+  AssignContainer,
+  UnassignClassroomList,
 } from "../../commons/components";
-import { isBefore } from "../../commons/date-func";
 import { EventId, PAGE_LIMIT, Prefix } from "../../commons/constants";
 import {
-  capitalize,
   isResponseSuccessfully,
   serializedAssignResponseArray,
 } from "../../commons/utils";
@@ -35,7 +30,7 @@ type FormikProps = {
   checked: string[];
 };
 
-const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
+const UnassignedClassroomList: FC<Props> = ({ mentorId }) => {
   const [records, setRecords] = useState<Classroom[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(PAGE_LIMIT);
@@ -180,105 +175,56 @@ const UnassignClassroomList: FC<Props> = ({ mentorId }) => {
   return (
     <>
       <ToastMessage />
-      <span className="mr-2">
-        <Search
-          handleSearch={handleSearch}
-          value={queryString}
-          disabled={isDisableSearchInput}
-        />
-      </span>
-      {isLoading ? (
-        <>
-          <ComponentLoader />
-        </>
-      ) : (
-        <>
-          <FormikContext.Provider value={formikBag}>
-            <ul className="h-50vh overflow-auto">
-              {records && records.length > 0 ? (
-                records
-                  .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
-                  .slice(0, PAGE_LIMIT)
-                  .map((item, index) => (
-                    <AssignListWrapper key={index}>
-                      <div className="w-full flex justify-between">
-                        <div style={{ flex: "3" }}>
-                          <ListItemAvatar img={item.cover}>
-                            <div>
-                              <Typography
-                                text={item.name}
-                                type="name"
-                                size="normal"
-                              />
-                              <Typography
-                                text={capitalize(item.description || "")}
-                                type="muted"
-                                size="small"
-                              />
-                            </div>
-                          </ListItemAvatar>
-                        </div>
-                        <div style={{ flex: "2" }}>
-                          <Typography text="Mentors" type="name" size="small" />
-                          <Typography
-                            text={`${item.assignedMentor}/25`}
-                            type="muted"
-                            size="small"
-                          />
-                        </div>
-                        <div style={{ flex: "1" }}>
-                          <Form>
-                            <FormikCheckbox name="checked" value={item._id}>
-                              {""}
-                            </FormikCheckbox>
-                          </Form>
-                        </div>
-
-                        <AssignListItemControl
-                          handleAssign={() => handleAssign(item._id)}
-                          setEventId={setEventId}
-                          name={item.name}
-                        />
-                      </div>
-                    </AssignListWrapper>
-                  ))
-              ) : (
-                <div className="flex justify-center items-center place-items-center relative p-4">
-                  {eventId === EventId.Search || queryString ? (
-                    <div>No result was found.</div>
-                  ) : (
-                    <div>All classsrooms are assigned.</div>
-                  )}
-                </div>
-              )}
-            </ul>
-            <div className="">
+      <FormikContext.Provider value={formikBag}>
+        <AssignContainer
+          searchInput={
+            <Search
+              handleSearch={handleSearch}
+              value={queryString}
+              disabled={isDisableSearchInput}
+            />
+          }
+          list={
+            <UnassignClassroomList
+              records={records as Classroom[]}
+              handleAssign={handleAssign}
+              setEventId={setEventId}
+              eventId={eventId}
+              queryString={queryString}
+              prefix={Prefix.Classroom}
+            />
+          }
+          pagination={
+            records && records.length > 1 ? (
               <Pagination
                 paginationRange={paginationRange}
                 currentPage={page}
                 handlePaging={handlePaging}
               />
-            </div>
-            <div style={{ marginTop: "-2.6rem" }}>
-              <ConfirmModal
-                title="Confirm"
-                label="Assign all"
-                handleSubmit={handleSubmit}
-                setEventId={setEventId}
-                disabled={!isChecked}
-              >
-                <Typography
-                  text={`Assign all selected students?`}
-                  type="name"
-                  size="normal"
-                />
-              </ConfirmModal>
-            </div>
-          </FormikContext.Provider>
-        </>
-      )}
+            ) : (
+              <></>
+            )
+          }
+          button={
+            <ConfirmModal
+              title="Confirm"
+              label="Assign all"
+              handleSubmit={handleSubmit}
+              setEventId={setEventId}
+              disabled={!isChecked}
+            >
+              <Typography
+                text={`Assign all selected students?`}
+                type="name"
+                size="normal"
+              />
+            </ConfirmModal>
+          }
+          isLoading={isLoading}
+        />
+      </FormikContext.Provider>
     </>
   );
 };
 
-export default UnassignClassroomList;
+export default UnassignedClassroomList;

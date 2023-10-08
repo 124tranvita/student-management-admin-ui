@@ -19,7 +19,7 @@ export const useSearch = (
   // The solution : https://kyleshevlin.com/debounce-and-throttle-callbacks-with-react-hooks
   const debouncedSearch = useMemo(
     () =>
-      debounce((path: string) => {
+      debounce((path: string, option: object) => {
         callApi(path, option);
       }, 750),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -33,12 +33,13 @@ export const useSearch = (
       debouncedSearch(
         `${path}page=${1}&limit=${
           query ? PAGE_MAX : PAGE_LIMIT
-        }&queryString=${query}`
+        }&queryString=${query}`,
+        option
       );
 
       setEventId(query ? EventId.Search : EventId.None);
     },
-    [path, setEventId, debouncedSearch]
+    [path, setEventId, debouncedSearch, option]
   );
 
   return {

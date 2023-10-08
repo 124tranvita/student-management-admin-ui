@@ -36,7 +36,7 @@ const MentorList: FC<Props> = ({
     );
   }
   return (
-    <ul style={{ height: "75vh" }}>
+    <ul style={{ height: "70vh" }}>
       {mentors &&
         mentors.length > 0 &&
         mentors

@@ -4,6 +4,7 @@ import {
   Typography,
   ListItemAvatar,
   ListItemWrapper,
+  ListEmpty,
 } from "../../commons/components";
 import { ListItemControl } from "../../commons/components/list-item";
 import { isBefore } from "../../commons/date-func";
@@ -29,6 +30,13 @@ const ClassroomList: FC<Props> = ({
   handleSelect,
   setEventId,
 }) => {
+  if (classrooms && classrooms.length === 0) {
+    return (
+      <>
+        <ListEmpty />
+      </>
+    );
+  }
   return (
     <ul className="h-70vh">
       {classrooms &&

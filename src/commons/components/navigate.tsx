@@ -14,11 +14,11 @@ type Path = {
 
 export const NavigatePanel: FC<Path> = ({ path }) => {
   return (
-    <div className="absolute -top-6 left-4 z-50 w-full flex gap-2">
-      <div>
+    <div className="w-full flex">
+      <div className="mr-1">
         <Dropdown />
       </div>
-      <div className="flex items-center border-b-2 border-white">
+      <div className="items-center border-b-2 border-white">
         {path &&
           path.map((item: Obj, index: number) => (
             <Link key={index} to={item.to}>
@@ -34,7 +34,6 @@ export const NavigatePanel: FC<Path> = ({ path }) => {
             </Link>
           ))}
       </div>
-      <div className="absolute z-50"></div>
     </div>
   );
 };

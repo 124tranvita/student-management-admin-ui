@@ -164,3 +164,40 @@ export const checkIsComponentLoading = (
       eventId === EventId.Search)
   );
 };
+
+type DestObj = {
+  name: string;
+  to: string;
+  destiny: boolean;
+};
+
+export const analystPath = (path?: string): DestObj[] => {
+  if (!path) return [];
+
+  const destObj: DestObj[] = [];
+  const des = path.split("/");
+
+  if (des && des.length === 1) {
+    const obj = {
+      name: capitalize(des[0]),
+      to: des[0],
+      destiny: true,
+    };
+
+    destObj.push(obj);
+  }
+
+  if (des && des.length > 1) {
+    des.forEach((item, index) => {
+      const obj = {
+        name: capitalize(item),
+        to: item,
+        destiny: index === des.length - 1 ? true : false,
+      };
+
+      destObj.push(obj);
+    });
+  }
+
+  return destObj;
+};

@@ -1,21 +1,16 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
-import { Form, FormikContext, useFormik } from "formik";
+import { FormikContext, useFormik } from "formik";
 import { AssignStudentMentor } from "../../commons/model";
 import {
   Typography,
-  ListItemAvatar,
-  AssignListWrapper,
-  UnAssignListItemControl,
-  FormikCheckbox,
-  ComponentLoader,
   ConfirmModal,
   Pagination,
   Search,
+  AssignContainer,
+  AssignStudentList,
 } from "../../commons/components";
-import { isBefore } from "../../commons/date-func";
 import { EventId, PAGE_LIMIT, Prefix } from "../../commons/constants";
 import {
-  getStatus,
   isResponseSuccessfully,
   serializedUnassignResponseArray,
 } from "../../commons/utils";
@@ -179,100 +174,54 @@ const AssignedStudentList: FC<Props> = ({ mentorId }) => {
   return (
     <>
       <ToastMessage />
-      <span className="mr-2">
-        <Search
-          handleSearch={handleSearch}
-          value={queryString}
-          disabled={isDisableSearchInput}
-        />
-      </span>
-      {isLoading ? (
-        <>
-          <ComponentLoader />
-        </>
-      ) : (
-        <>
-          <FormikContext.Provider value={formikBag}>
-            <ul className="h-50vh overflow-auto">
-              {records && records.length > 0 ? (
-                records
-                  .sort((a, b) =>
-                    isBefore(a.assignedAt, b.assignedAt) ? 1 : -1
-                  )
-                  .slice(0, PAGE_LIMIT)
-                  .map((item, index) => (
-                    <AssignListWrapper key={index}>
-                      <ListItemAvatar img={item.studentAvatar}>
-                        <div>
-                          <Typography
-                            text={item.studentName}
-                            type="name"
-                            size="normal"
-                          />
-                          <Typography
-                            text={`${item.studentId} - ${getStatus(
-                              item.studentStatus
-                            )}`}
-                            type="muted"
-                            size="small"
-                          />
-                        </div>
-                      </ListItemAvatar>
-                      <div className="w-16">
-                        <Typography text="Mentor" type="name" size="small" />
-                        <Typography
-                          text={item.mentorName}
-                          type="muted"
-                          size="small"
-                        />
-                      </div>
-                      <Form>
-                        <FormikCheckbox name="checked" value={item._id}>
-                          {""}
-                        </FormikCheckbox>
-                      </Form>
-                      <UnAssignListItemControl
-                        handleUnAssign={() => handleUnAssign(item._id)}
-                        setEventId={setEventId}
-                        name={item.studentName}
-                      />
-                    </AssignListWrapper>
-                  ))
-              ) : (
-                <div className="flex justify-center items-center place-items-center relative p-4">
-                  {eventId === EventId.Search || queryString ? (
-                    <div>No result was found.</div>
-                  ) : (
-                    <div>All students are assigned.</div>
-                  )}
-                </div>
-              )}
-            </ul>
-            <div className="">
+      <FormikContext.Provider value={formikBag}>
+        <AssignContainer
+          searchInput={
+            <Search
+              handleSearch={handleSearch}
+              value={queryString}
+              disabled={isDisableSearchInput}
+            />
+          }
+          list={
+            <AssignStudentList
+              records={records}
+              handleUnAssign={handleUnAssign}
+              setEventId={setEventId}
+              eventId={eventId}
+              queryString={queryString}
+              prefix={Prefix.Student}
+            />
+          }
+          pagination={
+            records && records.length > 1 ? (
               <Pagination
                 paginationRange={paginationRange}
                 currentPage={page}
                 handlePaging={handlePaging}
               />
-            </div>
-            <div style={{ marginTop: "-2.6rem" }}>
-              <ConfirmModal
-                title="Confirm"
-                label="Unassign all"
-                handleSubmit={handleSubmit}
-                setEventId={setEventId}
-                disabled={!isChecked}
-              >
-                <Typography
-                  text={`Unassign all selected students?`}
-                  type="name"
-                  size="normal"
-                />
-              </ConfirmModal>
-            </div>
-          </FormikContext.Provider>
-        </>
-      )}
+            ) : (
+              <></>
+            )
+          }
+          button={
+            <ConfirmModal
+              title="Confirm"
+              label="Uassign all"
+              handleSubmit={handleSubmit}
+              setEventId={setEventId}
+              disabled={!isChecked}
+            >
+              <Typography
+                text={`Unassign all selected students?`}
+                type="name"
+                size="normal"
+              />
+            </ConfirmModal>
+          }
+          isLoading={isLoading}
+        />
+      </FormikContext.Provider>
     </>
   );
 };

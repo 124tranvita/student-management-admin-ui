@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { classNames } from "../utils";
-import { BackIcon, ReloadIcon, SwitchIcon } from "./icons";
+import { BackIcon, ReloadIcon } from "./icons";
 
 enum Variant {
   Primary = "primary",
@@ -109,7 +109,6 @@ export const RoundedIconButton: React.FC<ButtonProps> = ({
 export const IconButton: React.FC<ButtonProps> = ({
   children,
   type = "button",
-  label,
   variant,
   onClick,
 }) => {
@@ -117,13 +116,12 @@ export const IconButton: React.FC<ButtonProps> = ({
     <button
       type={type}
       className={classNames(
-        "inline-flex justify-center items-center rounded-lg border border-transparent text-3xl font-extrabold focus:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+        "items-center rounded-lg border border-transparent text-3xl font-extrabold focus:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
         VariantMap[variant]
       )}
       onClick={onClick}
     >
       {children}
-      <span className="text-base font-semibold pr-2">{label}</span>
     </button>
   );
 };
@@ -215,7 +213,11 @@ export const SwitchButton: React.FC<SwitchButtonProps> = ({
   };
   return (
     <>
-      <Button variant="primary" label={<SwitchIcon />} onClick={handleSwitch} />
+      <Button
+        variant="primary"
+        label={filter === "0" ? "Mentor" : "Admin"}
+        onClick={handleSwitch}
+      />
     </>
   );
 };

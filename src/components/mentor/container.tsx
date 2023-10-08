@@ -2,19 +2,18 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { FormikContext, useFormik } from "formik";
 import {
   AddFormModal,
-  AbsContainer,
-  NavigatePanel,
   Loader,
   ComponentLoader,
   Pagination,
   Buttons,
   ListWrapper,
   Search,
+  RightContainer,
+  LeftContainer,
 } from "../../commons/components";
 import { Mentor, mentorInitial } from "../../commons/model";
 import {
   checkIsComponentLoading,
-  getMentorFilter,
   isResponseSuccessfully,
   serializedDeleteResponse,
   serializedPatchResponse,
@@ -34,11 +33,10 @@ import MentorList from "./mentor-list";
 import { MentorFormikProps, mentorFormikInitial } from "./types";
 import CreateForm from "./create-form";
 import MentorInfo from "./mentor-info";
-import AssignPanel from "./assign-panel";
 import NoItem from "./no-item";
 import { createValidationSchema } from "./validatation-schema";
 import { createValidateSubmission } from "./validate-submission";
-import { Role, Status } from "./constants";
+import { Status } from "./constants";
 
 const Mentor: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
@@ -133,7 +131,7 @@ const Mentor: FC = () => {
         setGrossCnt(grossCnt - 1);
         setToastMessage(Constants.Prefix.Mentor, Constants.EventId.Delete);
         setEventId(Constants.EventId.None);
-        return setMentors(updated as Mentor[]);
+        return setMentors(updated);
       }
 
       if (eventId === Constants.EventId.Search) {
@@ -299,75 +297,58 @@ const Mentor: FC = () => {
     <>
       <ToastMessage />
       {/* Left Panel */}
-      <div className="relative w-1/4">
-        <NavigatePanel
-          path={[
-            {
-              name: `Mentors: ${getMentorFilter(filter)}`,
-              to: "/mentor",
-              destiny: true,
-            },
-          ]}
-        />
-        {mentor && (
-          <>
-            <MentorInfo mentor={mentor} />
-            {mentor.roles === Role.Mentor &&
-              mentor.status === Status.Active && (
-                <>
-                  <AssignPanel mentor={mentor} />
-                </>
-              )}
-          </>
-        )}
-      </div>
+      <LeftContainer detail={mentor && <MentorInfo mentor={mentor} />} />
 
       {/* Right Panel */}
       <FormikContext.Provider value={formikBag}>
-        <div className="relative w-3/4 p-4 h-75vh">
-          {isComponentLoading ? (
-            <div className="relative h-full">
-              <ComponentLoader />
-            </div>
-          ) : (
-            <ListWrapper>
-              <MentorList
-                mentors={mentors}
-                selectedId={mentor ? mentor._id : ""}
-                handleUpdate={handleUpdate}
-                handleRemove={handleRemove}
-                handleSelect={handleSelect}
+        <RightContainer
+          upperBtn={
+            <>
+              <span className="mr-2">
+                <Search handleSearch={handleSearch} value={queryString} />
+              </span>
+              <span className="mr-2">
+                <Buttons.SwitchButton filter={filter} setFilter={setFilter} />
+              </span>
+              <span className="mr-2">
+                <Buttons.ReloadButton />
+              </span>
+              <AddFormModal
+                title="Add new mentor"
+                type="add"
+                handleSubmit={handleSubmit}
                 setEventId={setEventId}
-              />
-            </ListWrapper>
-          )}
-          <AbsContainer variant="top-right">
-            <span className="mr-2">
-              <Search handleSearch={handleSearch} value={queryString} />
-            </span>
-            <span className="mr-2">
-              <Buttons.SwitchButton filter={filter} setFilter={setFilter} />
-            </span>
-            <span className="mr-2">
-              <Buttons.ReloadButton />
-            </span>
-            <AddFormModal
-              title="Add new mentor"
-              type="add"
-              handleSubmit={handleSubmit}
-              setEventId={setEventId}
-            >
-              <CreateForm />
-            </AddFormModal>
-          </AbsContainer>
-          <div className="absolute -bottom-24 left-0 right-0">
+              >
+                <CreateForm />
+              </AddFormModal>
+            </>
+          }
+          list={
+            isComponentLoading ? (
+              <div className="relative h-full">
+                <ComponentLoader />
+              </div>
+            ) : (
+              <ListWrapper>
+                <MentorList
+                  mentors={mentors}
+                  selectedId={mentor ? mentor._id : ""}
+                  handleUpdate={handleUpdate}
+                  handleRemove={handleRemove}
+                  handleSelect={handleSelect}
+                  setEventId={setEventId}
+                />
+              </ListWrapper>
+            )
+          }
+          pagination={
             <Pagination
               paginationRange={paginationRange}
               currentPage={page}
               handlePaging={handlePaging}
             />
-          </div>
-        </div>
+          }
+        />
       </FormikContext.Provider>
     </>
   );

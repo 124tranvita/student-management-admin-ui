@@ -1,13 +1,12 @@
 import { useCallback } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { LoginInfContextProvider } from "./context/LoginInfContext";
-import { useAuthContext } from "./hooks/useAuthContext";
-import { publicPages, privatePages, Pages } from "./pages";
 import { Wrapper } from "./commons/components";
 import { logout } from "./components/auth/utils";
-import { useSilentRefreshToken } from "./hooks/useSilentRefreshToken";
 import { getStoreHistory } from "./commons/utils";
 import { TOKEN_EXPIRY } from "./commons/constants";
+import { publicPages, privatePages, Pages } from "./pages";
+import { useSilentRefreshToken, useAuthContext } from "./hooks";
 
 function App() {
   const history = getStoreHistory();
@@ -50,7 +49,9 @@ function App() {
               path={page.path}
               element={
                 signinToken.accessToken ? (
-                  <Wrapper onClick={handleSignOut}>{page.page}</Wrapper>
+                  <Wrapper onClick={handleSignOut} path={page.path}>
+                    {page.page}
+                  </Wrapper>
                 ) : (
                   <Navigate to="/signin" />
                 )

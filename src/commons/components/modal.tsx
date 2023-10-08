@@ -21,7 +21,7 @@ export const DialogModal: React.FC<DialogModalProps> = ({
 }) => {
   return (
     <React.Fragment>
-      <div className="flex items-center justify-center">{button}</div>
+      <div className="items-center justify-center">{button}</div>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
           <Transition.Child
@@ -400,7 +400,6 @@ export const AssignModal: React.FC<AssignModalProps> = ({
   children,
   icon,
   title,
-  label,
   isAssign,
   setIsAssign,
 }) => {
@@ -412,7 +411,7 @@ export const AssignModal: React.FC<AssignModalProps> = ({
         onClick={openModal}
         variant="primary"
         type="button"
-        label={label}
+        label={""}
       >
         {icon}
       </IconButton>
@@ -434,16 +433,15 @@ export const AssignModal: React.FC<AssignModalProps> = ({
       button={RenderedButton}
       closeModal={closeModal}
     >
-      <Dialog.Panel className="w-60vw h-80vh transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+      <Dialog.Panel className="w-60vw h-90vh transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
         <Dialog.Title
           as="h3"
           className="text-lg font-medium leading-6 text-gray-900 mb-8"
         >
           {title}
         </Dialog.Title>
-        <div className="mt-2 h-62vh">{children}</div>
-
-        <div className="flex justify-around mt-4">
+        <div className="mt-2 h-72vh">{children}</div>
+        <div className="absolute bottom-6 w-full flex justify-around mt-4">
           <Button
             type="button"
             label="Switch"
@@ -505,6 +503,10 @@ export const ConfirmModal: React.FC<
     setIsOpen(true);
   }
 
+  function onClick() {
+    handleSubmit();
+    setIsOpen(false);
+  }
   return (
     <DialogModal
       isOpen={isOpen}
@@ -525,7 +527,7 @@ export const ConfirmModal: React.FC<
             type="submit"
             label="Confirm"
             variant="primary"
-            onClick={handleSubmit}
+            onClick={onClick}
           />
           <Button
             type="button"
