@@ -38,15 +38,16 @@ export const Wrapper: React.FC<Props> = ({ children, onClick, path }) => {
 
   return (
     <div className="relative w-full p-6">
-      <div className="absolute top-2 right-2 z-50">
-        <button
-          className="inline-flex justify-center rounded-md border border-transparent px-1 py-1 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 bg-red-100 text-red-900 hover:bg-red-200"
-          onClick={onClick}
-        >
-          <Icons.LogOutIcon />
-        </button>
-      </div>
       <div className="fixed lg:top-1 2xl:top-10 lg:left-1 2xl:left-10 lg:bottom-1 2xl:bottom-10 lg:right-1 2xl:right-10 px-12 py-8 bg-white border border-slate-100 rounded-md shadow-lg hover:shadow-xl duration-300 overflow-y-auto">
+        <div className="absolute top-8 left-3 z-50">
+          <button
+            className="inline-flex justify-center rounded-md border border-transparent px-1 py-1 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 bg-red-100 text-red-900 hover:bg-red-200"
+            onClick={onClick}
+          >
+            <Icons.LogOutIcon />
+          </button>
+        </div>
+
         <div className="flex pl-4">
           <Dropdown />
           <div className="items-center ml-1 border-b-2 border-white">

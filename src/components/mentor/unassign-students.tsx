@@ -194,7 +194,7 @@ const UnassignedStudentList: FC<Props> = ({ mentorId }) => {
             />
           }
           pagination={
-            records && records.length > 1 ? (
+            records && records.length > 0 ? (
               <Pagination
                 paginationRange={paginationRange}
                 currentPage={page}

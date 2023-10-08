@@ -2,7 +2,6 @@ import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { FormikContext, useFormik } from "formik";
 import {
   AddFormModal,
-  NavigatePanel,
   Loader,
   ComponentLoader,
   Pagination,
@@ -10,6 +9,7 @@ import {
   ListWrapper,
   Search,
   RightContainer,
+  LeftContainer,
 } from "../../commons/components";
 import { Classroom, classroomInitial } from "../../commons/model";
 import {
@@ -34,7 +34,6 @@ import { createValidateSubmission } from "./validate-submission";
 import { ClassroomFormikProps, classroomFormikInitial } from "./types";
 import CreateForm from "./create-form";
 import ClassroomInfo from "./classroom-info";
-import AssignPanel from "./assign-panel";
 import NoItem from "./no-item";
 
 const Classroom: FC = () => {
@@ -290,17 +289,9 @@ const Classroom: FC = () => {
     <>
       <ToastMessage />
       {/* Left Panel */}
-      <div className="relative w-1/4">
-        <NavigatePanel
-          path={[{ name: "Classrooms", to: "/classroom", destiny: true }]}
-        />
-        {classroom && (
-          <>
-            <ClassroomInfo classroom={classroom} />
-            <AssignPanel classroom={classroom} />
-          </>
-        )}
-      </div>
+      <LeftContainer
+        detail={classroom && <ClassroomInfo classroom={classroom} />}
+      />
 
       {/* Right Panel */}
       <FormikContext.Provider value={formikBag}>

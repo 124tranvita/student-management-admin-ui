@@ -1,112 +1,25 @@
-import { FC, ReactNode } from "react";
+import { capitalize } from "lodash";
 import { Form } from "formik";
-import { EventId } from "../constants";
-import { isBefore } from "../date-func";
+import { EventId } from "../../constants";
 import {
-  AssignClassroomMentor,
   AssignStudentMentor,
-  Classroom,
   Student,
-} from "../model";
-import { capitalize, getGender, getStatus } from "../utils";
-import Typography from "./typography";
-import { AssignFormModal, UnassignFormModal } from "./modal";
-import { ListItemAvatar, FormikCheckbox } from ".";
+  AssignClassroomMentor,
+  Classroom,
+} from "../../model";
+import { getStatus, getGender } from "../../utils";
+import { isBefore } from "../../date-func";
+import {
+  AssignListWrapper,
+  ListItemAvatar,
+  Typography,
+  FormikCheckbox,
+  UnAssignListItemControl,
+  NoDataPlaceHolder,
+  AssignListItemControl,
+} from "..";
 
-type Props = {
-  children: ReactNode;
-};
-
-export const AssignListWrapper: FC<Props> = ({ children }) => {
-  return (
-    <>
-      <li className="flex justify-between items-center p-2 mb-2 rounded-md border border-slate-100 hover:shadow-sm hover:bg-slate-100 duration-300 hover:cursor-pointer">
-        {children}
-      </li>
-    </>
-  );
-};
-
-type UnAssignListItemControlProps = {
-  handleUnAssign: () => void;
-  setEventId: (value: EventId) => void;
-  name: string;
-};
-
-export const UnAssignListItemControl: FC<UnAssignListItemControlProps> = ({
-  handleUnAssign,
-  setEventId,
-  name,
-}) => {
-  return (
-    <div className="flex justify-start items-center ">
-      <div>
-        <UnassignFormModal
-          title="Confirm"
-          handleSubmit={handleUnAssign}
-          setEventId={setEventId}
-        >
-          <Typography
-            text={`Unassign student "${name}"?`}
-            type="name"
-            size="normal"
-          />
-        </UnassignFormModal>
-      </div>
-    </div>
-  );
-};
-
-type AssignListItemControlProps = {
-  handleAssign: () => void;
-  setEventId: (value: EventId) => void;
-  name: string;
-};
-
-export const AssignListItemControl: FC<AssignListItemControlProps> = ({
-  handleAssign,
-  setEventId,
-  name,
-}) => {
-  return (
-    <div className="flex justify-start items-center ">
-      <div>
-        <AssignFormModal
-          title="Confirm"
-          handleSubmit={handleAssign}
-          setEventId={setEventId}
-        >
-          <Typography text={`Assign "${name}"?`} type="name" size="normal" />
-        </AssignFormModal>
-      </div>
-    </div>
-  );
-};
-
-type NoDataPlaceHolderProps = {
-  eventId: EventId;
-  queryString: string;
-  prefix: string;
-};
-
-export const NoDataPlaceHolder: React.FC<NoDataPlaceHolderProps> = ({
-  eventId,
-  queryString,
-  prefix,
-}) => {
-  return (
-    <div className="flex justify-center items-center place-items-center relative p-4">
-      {eventId === EventId.Search || queryString ? (
-        <div>No result was found.</div>
-      ) : (
-        <div>{`Not have any ${prefix} assinged yet.`}</div>
-      )}
-    </div>
-  );
-};
-
-type AssignStudentListProps = {
-  records: AssignStudentMentor[];
+type AssignListProps = {
   handleUnAssign: (value: string) => void;
   setEventId: React.Dispatch<React.SetStateAction<EventId>>;
   eventId: EventId;
@@ -114,7 +27,19 @@ type AssignStudentListProps = {
   prefix: string;
 };
 
-export const AssignStudentList: React.FC<AssignStudentListProps> = ({
+type UnassignListProps = {
+  handleAssign: (value: string) => void;
+  setEventId: React.Dispatch<React.SetStateAction<EventId>>;
+  eventId: EventId;
+  queryString: string;
+  prefix: string;
+};
+
+interface AssignStudentList extends AssignListProps {
+  records: AssignStudentMentor[];
+}
+
+export const AssignStudentList: React.FC<AssignStudentList> = ({
   records,
   handleUnAssign,
   setEventId,
@@ -124,7 +49,7 @@ export const AssignStudentList: React.FC<AssignStudentListProps> = ({
 }) => {
   return (
     <>
-      {records && records.length > 0 ? (
+      {records && records && records.length > 0 ? (
         records
           .sort((a, b) => (isBefore(a.assignedAt, b.assignedAt) ? 1 : -1))
           .map((item, index) => (
@@ -172,16 +97,11 @@ export const AssignStudentList: React.FC<AssignStudentListProps> = ({
   );
 };
 
-type UnassignStudentListProps = {
+interface UnassignStudentList extends UnassignListProps {
   records: Student[];
-  handleAssign: (value: string) => void;
-  setEventId: React.Dispatch<React.SetStateAction<EventId>>;
-  eventId: EventId;
-  queryString: string;
-  prefix: string;
-};
+}
 
-export const UnassignStudentList: React.FC<UnassignStudentListProps> = ({
+export const UnassignStudentList: React.FC<UnassignStudentList> = ({
   records,
   handleAssign,
   setEventId,
@@ -237,16 +157,11 @@ export const UnassignStudentList: React.FC<UnassignStudentListProps> = ({
   );
 };
 
-type AssignClassroomListProps = {
+interface AssignClassroomList extends AssignListProps {
   records: AssignClassroomMentor[];
-  handleUnAssign: (value: string) => void;
-  setEventId: React.Dispatch<React.SetStateAction<EventId>>;
-  eventId: EventId;
-  queryString: string;
-  prefix: string;
-};
+}
 
-export const AssignClassroomList: React.FC<AssignClassroomListProps> = ({
+export const AssignClassroomList: React.FC<AssignClassroomList> = ({
   records,
   handleUnAssign,
   setEventId,
@@ -313,16 +228,11 @@ export const AssignClassroomList: React.FC<AssignClassroomListProps> = ({
   );
 };
 
-type UnassignClassroomListProps = {
+interface UnassignClassroomList extends UnassignListProps {
   records: Classroom[];
-  handleAssign: (value: string) => void;
-  setEventId: React.Dispatch<React.SetStateAction<EventId>>;
-  eventId: EventId;
-  queryString: string;
-  prefix: string;
-};
+}
 
-export const UnassignClassroomList: React.FC<UnassignClassroomListProps> = ({
+export const UnassignClassroomList: React.FC<UnassignClassroomList> = ({
   records,
   handleAssign,
   setEventId,

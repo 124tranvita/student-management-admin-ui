@@ -2,7 +2,7 @@ import { FC, useState } from "react";
 import { Icons } from "../../commons/components";
 import { AssignModal } from "../../commons/components/modal";
 import { Classroom } from "../../commons/model";
-import UnassignMentorList from "./unassign-mentors";
+import UnassignedMentorList from "./unassign-mentors";
 import AssignedMentorList from "./assigned-mentors";
 
 type AssignPanel = {
@@ -19,23 +19,21 @@ const AssignPanel: FC<AssignPanel> = ({ classroom }) => {
     component: isAssign ? (
       <AssignedMentorList classroomId={classroom._id} />
     ) : (
-      <UnassignMentorList classroomId={classroom._id} />
+      <UnassignedMentorList classroomId={classroom._id} />
     ),
   };
 
   return (
-    <div className="flex flex-wrap justify-evenly w-full px-1 border-t border-gray-200 pt-6">
-      <div className="mx-2 mb-3">
-        <AssignModal
-          title={data.title}
-          label="Mentors"
-          isAssign={isAssign}
-          setIsAssign={setIsAssign}
-          icon={<Icons.ListStudentIcon />}
-        >
-          {data.component}
-        </AssignModal>
-      </div>
+    <div className="mx-2 items-center">
+      <AssignModal
+        title={data.title}
+        label="Mentors"
+        isAssign={isAssign}
+        setIsAssign={setIsAssign}
+        icon={<Icons.ListStudentIcon />}
+      >
+        {data.component}
+      </AssignModal>
     </div>
   );
 };

@@ -36,7 +36,9 @@ import {
   UnassignStudentList,
   AssignClassroomList,
   UnassignClassroomList,
-} from "./assign-list";
+  AssignMentorList,
+  UnassignMentorList,
+} from "./assign";
 import * as Icons from "./icons";
 import * as Buttons from "./buttons";
 import { Dropdown } from "./dropdown";
@@ -89,4 +91,6 @@ export {
   UnassignStudentList,
   AssignClassroomList,
   UnassignClassroomList,
+  AssignMentorList,
+  UnassignMentorList,
 };

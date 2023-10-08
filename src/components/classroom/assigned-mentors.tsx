@@ -1,25 +1,26 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
-import { Form, FormikContext, useFormik } from "formik";
+import { FormikContext, useFormik } from "formik";
 import { AssignClassroomMentor } from "../../commons/model";
 import {
   Typography,
-  ListItemAvatar,
-  AssignListWrapper,
-  UnAssignListItemControl,
-  FormikCheckbox,
-  ComponentLoader,
-  NoAssign,
   ConfirmModal,
+  AssignContainer,
+  AssignMentorList,
+  Pagination,
+  Search,
 } from "../../commons/components";
-import { isBefore } from "../../commons/date-func";
-import { EventId } from "../../commons/constants";
+import { EventId, PAGE_LIMIT, Prefix } from "../../commons/constants";
 import {
-  getStatus,
   isResponseSuccessfully,
   serializedUnassignResponseArray,
 } from "../../commons/utils";
-import useCallApi from "../../hooks/useCallApi";
-import { useAuthContext } from "../../hooks/useAuthContext";
+import {
+  useCallApi,
+  useAuthContext,
+  useToastMessage,
+  usePagination,
+  useSearch,
+} from "../../hooks";
 
 type Props = {
   classroomId: string;
@@ -32,24 +33,31 @@ type FormikProps = {
 const AssignedMentorList: FC<Props> = ({ classroomId }) => {
   const [records, setRecords] = useState<AssignClassroomMentor[]>([]);
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(25);
+  const [limit] = useState<number>(PAGE_LIMIT);
+  const [grossCnt, setGrossCnt] = useState<number>(0);
   const [eventId, setEventId] = useState<EventId>(EventId.Init);
-
+  const { setToastMessage, setErrorToastMessage, ToastMessage } =
+    useToastMessage();
   const { signinToken } = useAuthContext();
-  const { callApi, response, isLoading, error } = useCallApi<
+  const { callApi, response, isLoading, error, GET, PATCH } = useCallApi<
     AssignClassroomMentor[]
   >([]);
+  const { paginationRange } = usePagination({
+    limit,
+    grossCnt,
+  });
+  const { queryString, handleSearch } = useSearch(
+    callApi,
+    `assign/classroom/mentor-to-classroom?id=${classroomId}&`,
+    GET(signinToken.accessToken),
+    setEventId
+  );
 
   /** Call API at init */
   useEffect(() => {
     callApi(
       `assign/classroom/mentor-to-classroom?id=${classroomId}&page=${page}&limit=${limit}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${signinToken.accessToken}`,
-        },
-      }
+      GET(signinToken.accessToken)
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -57,55 +65,69 @@ const AssignedMentorList: FC<Props> = ({ classroomId }) => {
   /** Check reponse */
   useEffect(() => {
     if (isResponseSuccessfully(response)) {
-      if (eventId === EventId.Init) {
-        setRecords(records.concat(response.data));
+      if (eventId === EventId.Unassign) {
+        const updated = serializedUnassignResponseArray<AssignClassroomMentor>(
+          records,
+          response.data
+        );
+        setGrossCnt(grossCnt - response.data.length);
+        setToastMessage(Prefix.Mentor, EventId.Unassign);
+        setEventId(EventId.Init);
+        return setRecords(updated as AssignClassroomMentor[]);
       }
 
-      if (eventId === EventId.Unassign) {
-        const updated = serializedUnassignResponseArray(records, response.data);
-        return setRecords(updated as AssignClassroomMentor[]);
+      if (eventId === EventId.Search) {
+        setGrossCnt(PAGE_LIMIT);
+      } else {
+        setGrossCnt(response.grossCnt || 0);
+      }
+
+      setRecords(response.data);
+    }
+    {
+      if (error) {
+        setEventId(EventId.Init);
+        setErrorToastMessage(error.message);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId, response]);
+  }, [response, error]);
 
   /** handle unassign one student per request */
-  const handleUnAssign = useCallback((value: string) => {
-    const data = {
-      assignedIds: value.split(","),
-    };
+  const handleUnAssign = useCallback(
+    (value: string) => {
+      const data = {
+        assignedIds: value.split(","),
+      };
 
-    callApi(`assign/classroom/unassign-mentor/${classroomId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+      callApi(
+        `assign/classroom/unassign-mentor/${classroomId}`,
+        PATCH(signinToken.accessToken, data)
+      );
 
-    setEventId(EventId.Unassign);
+      setEventId(EventId.Unassign);
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    [signinToken.accessToken]
+  );
 
   /** handle unassing multiple students per request */
-  const handleUnAssignAll = useCallback((values: FormikProps) => {
-    const data = {
-      assignedIds: values.checked,
-    };
+  const handleUnAssignAll = useCallback(
+    (values: FormikProps) => {
+      const data = {
+        assignedIds: values.checked,
+      };
 
-    callApi(`assign/classroom/unassign-mentor/${classroomId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${signinToken.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+      callApi(
+        `assign/classroom/unassign-mentor/${classroomId}`,
+        PATCH(signinToken.accessToken, data)
+      );
 
-    setEventId(EventId.Unassign);
+      setEventId(EventId.Unassign);
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    [signinToken.accessToken]
+  );
 
   /** Formik */
   const formikBag = useFormik({
@@ -122,84 +144,85 @@ const AssignedMentorList: FC<Props> = ({ classroomId }) => {
     }
   }, [formikBag]);
 
+  /** Handle paging */
+  const handlePaging = useCallback(
+    (page: number) => {
+      setEventId(EventId.Paging);
+      callApi(
+        `assign/classroom/mentor-to-classroom?id=${classroomId}&page=${page}&limit=${limit}`,
+        GET(signinToken.accessToken)
+      );
+      setPage(page);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [signinToken.accessToken]
+  );
+
   const isChecked = useMemo(() => {
     return formikBag.values.checked && formikBag.values.checked.length > 0;
   }, [formikBag.values.checked]);
 
-  if (isLoading) {
+  const isDisableSearchInput = useMemo(() => {
     return (
-      <>
-        <ComponentLoader />
-      </>
+      eventId !== EventId.Search &&
+      !queryString &&
+      records &&
+      records.length === 0
     );
-  }
-
-  if (records && records.length === 0) {
-    return <NoAssign content="Classroom has no assinged mentor" />;
-  }
+  }, [records, eventId, queryString]);
 
   return (
-    <FormikContext.Provider value={formikBag}>
-      <ul className="h-90per overflow-auto">
-        {records &&
-          records.length > 0 &&
-          records
-            .sort((a, b) => (isBefore(a.assignedAt, b.assignedAt) ? 1 : -1))
-            .slice(0, limit)
-            .map((item, index) => (
-              <AssignListWrapper key={index}>
-                <ListItemAvatar
-                  img={
-                    item.avatar ||
-                    "https://cdn-icons-png.flaticon.com/512/4128/4128405.png"
-                  }
-                >
-                  <div className="w-64">
-                    <Typography
-                      text={item.assignee}
-                      type="name"
-                      size="normal"
-                    />
-                    <Typography
-                      text={`${item.email} - ${getStatus(item.status || "")}`}
-                      type="muted"
-                      size="small"
-                    />
-                  </div>
-                </ListItemAvatar>
-                <div className="w-16">
-                  <Typography text="Classroom" type="name" size="small" />
-                  <Typography text={item.name} type="muted" size="small" />
-                </div>
-                <Form>
-                  <FormikCheckbox name="checked" value={item._id}>
-                    {""}
-                  </FormikCheckbox>
-                </Form>
-                <UnAssignListItemControl
-                  handleUnAssign={() => handleUnAssign(item._id)}
-                  setEventId={setEventId}
-                  name={item.assignee}
-                />
-              </AssignListWrapper>
-            ))}
-      </ul>
-      <div>
-        <ConfirmModal
-          title="Confirm"
-          label="Unassign all"
-          handleSubmit={handleSubmit}
-          setEventId={setEventId}
-          disabled={!isChecked}
-        >
-          <Typography
-            text={`Unassign all selected students?`}
-            type="name"
-            size="normal"
-          />
-        </ConfirmModal>
-      </div>
-    </FormikContext.Provider>
+    <>
+      <ToastMessage />
+      <FormikContext.Provider value={formikBag}>
+        <AssignContainer
+          searchInput={
+            <Search
+              handleSearch={handleSearch}
+              value={queryString}
+              disabled={isDisableSearchInput}
+            />
+          }
+          list={
+            <AssignMentorList
+              records={records}
+              handleUnAssign={handleUnAssign}
+              setEventId={setEventId}
+              eventId={eventId}
+              queryString={queryString}
+              prefix={Prefix.Mentor}
+            />
+          }
+          pagination={
+            records && records.length > 0 ? (
+              <Pagination
+                paginationRange={paginationRange}
+                currentPage={page}
+                handlePaging={handlePaging}
+              />
+            ) : (
+              <></>
+            )
+          }
+          button={
+            <ConfirmModal
+              title="Confirm"
+              label="Unassign all"
+              handleSubmit={handleSubmit}
+              setEventId={setEventId}
+              disabled={!isChecked}
+            >
+              <Typography
+                text={`Unassign all selected students?`}
+                type="name"
+                size="normal"
+              />
+            </ConfirmModal>
+          }
+          isLoading={isLoading}
+        />
+      </FormikContext.Provider>
+    </>
   );
 };
 
