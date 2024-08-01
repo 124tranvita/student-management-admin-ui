@@ -1,16 +1,17 @@
 import { useReducer } from "react";
-import { Response, Error } from "../commons/model";
+import { Error } from "../commons/model";
 import * as Constants from "./constants";
+import { useRefreshToken } from "./useRefreshToken";
 
 type StateType<T> = {
   isLoading: boolean;
   error: Error | null;
-  response: Response<T>;
+  response: T;
 };
 
 type ActionType<T> = {
   type: Constants.Types;
-  payload: Response<T>;
+  payload: T;
   error: Error | null;
 };
 
@@ -45,14 +46,11 @@ const useCallApiReducer = <T,>(
 };
 
 const useCallApi = <T,>(initData: T) => {
+  const { refreshAccessToken } = useRefreshToken();
   const [state, dispatch] = useReducer(useCallApiReducer<T>, {
     isLoading: false,
     error: null,
-    response: {
-      status: "",
-      result: "",
-      data: initData as T,
-    },
+    response: initData as T,
   });
 
   const callApi = async (path: string, options: object) => {
@@ -63,39 +61,42 @@ const useCallApi = <T,>(initData: T) => {
 
       dispatch({
         type: Constants.ACT_API_REQUEST,
-        payload: {
-          status: "",
-          result: "",
-          data: initData as T,
-        },
+        payload: state.response,
         error: null,
       });
 
-      const response = await fetch(URL, options);
+      let response = await fetch(URL, options);
 
-      if (!response.ok) {
-        const error = await response.json();
+      // Check if the token is expired
+      if (response.status === 401) {
+        // Token expired, refresh the token
+        const newAccessToken = await refreshAccessToken();
 
-        dispatch({
-          type: Constants.ACT_API_FAILURE,
-          payload: {
-            status: "",
-            result: "",
-            data: initData as T,
+        // Retry the original request with the new access token
+        response = await fetch(URL, {
+          ...options,
+          headers: {
+            Authorization: `Bearer ${newAccessToken}`,
+            "Content-Type": "application/json",
           },
-          error: error,
         });
       }
 
       const data = await response.json();
-
+      // Set the response
       dispatch({
         type: Constants.ACT_API_SUCCESS,
         payload: data,
         error: null,
       });
-    } catch (error) {
-      console.log({ error });
+    } catch (error: unknown | Error) {
+      console.error({ error });
+      // Set the error
+      dispatch({
+        type: Constants.ACT_API_FAILURE,
+        payload: state.response,
+        error: error as Error,
+      });
     }
   };
 

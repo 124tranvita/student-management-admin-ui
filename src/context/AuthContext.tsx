@@ -6,34 +6,36 @@ import {
   ReactNode,
   Dispatch,
 } from "react";
-import { SigninToken, signinTokenInitial } from "../commons/model";
+import { UserInf, useInfInitial } from "../commons/model";
 import * as Constants from "./constants";
 
 type ContextType = {
-  signinToken: SigninToken;
+  userInfo: UserInf;
   dispatchAuth: Dispatch<ActionType>;
 };
 
 type StateType = {
-  signinToken: SigninToken;
+  userInfo: UserInf;
 };
 
 type ActionType = {
   type: Constants.Types;
-  payload: SigninToken;
+  payload: UserInf;
 };
 
 export const AuthContext = createContext<ContextType>({
-  signinToken: signinTokenInitial,
+  userInfo: useInfInitial,
   dispatchAuth: () => null,
 });
 
 const authReducer = (state: StateType, action: ActionType): StateType => {
   switch (action.type) {
     case Constants.ACT_USER_LOGIN:
-      return { signinToken: action.payload };
+      sessionStorage.setItem("userInfo", JSON.stringify(action.payload));
+      return { userInfo: action.payload };
     case Constants.ACT_USER_LOGOUT:
-      return { signinToken: signinTokenInitial };
+      sessionStorage.setItem("userInfo", "");
+      return { userInfo: useInfInitial };
     default:
       return state;
   }
@@ -45,29 +47,23 @@ type Props = {
 
 export const AuthContextProvider: FC<Props> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, {
-    signinToken: signinTokenInitial,
+    userInfo: useInfInitial,
   });
 
-  const getSigninTokenFromLocalStorage = () => {
+  const getUserInfoFromSessionStorage = () => {
     try {
-      const accessToken = JSON.parse(
-        sessionStorage.getItem("accessToken") || ""
-      );
-      const refreshToken = JSON.parse(
-        sessionStorage.getItem("refreshToken") || ""
-      );
-
-      return { accessToken, refreshToken };
+      const userInfo = JSON.parse(sessionStorage.getItem("userInfo") || "");
+      return userInfo;
     } catch (error) {
       return null;
     }
   };
 
   useEffect(() => {
-    const signinToken = getSigninTokenFromLocalStorage();
+    const userInfo = getUserInfoFromSessionStorage();
 
-    if (signinToken) {
-      dispatch({ type: Constants.ACT_USER_LOGIN, payload: signinToken });
+    if (userInfo) {
+      dispatch({ type: Constants.ACT_USER_LOGIN, payload: userInfo });
     }
   }, []);
 

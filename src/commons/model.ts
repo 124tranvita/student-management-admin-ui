@@ -1,3 +1,15 @@
+export type Response<T> = {
+  status: string;
+  data: T;
+  grossCnt: number;
+};
+
+export const responseInitial: Response<object> = {
+  status: "",
+  data: {},
+  grossCnt: 0,
+};
+
 export type Mentor = {
   _id: string;
   email: string;
@@ -93,13 +105,6 @@ export type ClassroomCnt = {
   mentorCnt: number;
 };
 
-export type Response<T> = {
-  status: string;
-  data: T;
-  result?: string;
-  grossCnt?: number;
-};
-
 export type AssignStudentMentor = {
   id: string;
   assignedAt: string;
@@ -155,27 +160,47 @@ export const assignClassroomMentorInitial: AssignClassroomMentor = {
 };
 
 export type SigninToken = {
-  accessToken: string;
-  refreshToken: string;
+  status: string;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+  };
 };
 
 export const signinTokenInitial: SigninToken = {
-  accessToken: "",
-  refreshToken: "",
+  status: "",
+  data: {
+    accessToken: "",
+    refreshToken: "",
+  },
 };
 
-export type LoginInf = {
+export type Decoded = {
   sub: string;
   email: string;
   iat: number;
   exp: number;
 };
 
-export const loginInfInitial: LoginInf = {
-  sub: "",
-  email: "",
-  iat: 0,
-  exp: 0,
+export type UserInf = {
+  info: Decoded;
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
+};
+
+export const useInfInitial: UserInf = {
+  info: {
+    sub: "",
+    email: "",
+    iat: 0,
+    exp: 0,
+  },
+  tokens: {
+    accessToken: "",
+    refreshToken: "",
+  },
 };
 
 export type Error = {

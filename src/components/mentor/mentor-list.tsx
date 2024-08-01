@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { Mentor } from "../../commons/model";
 import {
   Typography,
@@ -7,26 +7,21 @@ import {
 } from "../../commons/components";
 import { ListItemControl } from "../../commons/components/list-item";
 import { isBefore } from "../../commons/date-func";
-import { EventId } from "../../commons/constants";
 import { capitalize, getStatus } from "../../commons/utils";
-import UpdateForm from "./update-form";
+import UpdateContainer from "./update";
 
 type Props = {
   mentors: Mentor[];
-  selectedId: string;
   limit: number;
-  handleUpdate: (value: string) => void;
-  handleRemove: (value: string) => void;
   handleSelect: (value: string) => void;
-  setEventId: (value: EventId) => void;
+  setMentors: React.Dispatch<React.SetStateAction<Mentor[]>>;
+  setEventId: (value: string) => void;
 };
 const MentorList: FC<Props> = ({
   mentors,
-  selectedId,
   limit,
-  handleUpdate,
-  handleRemove,
-  handleSelect,
+  // handleSelect,
+  setMentors,
   setEventId,
 }) => {
   return (
@@ -36,13 +31,8 @@ const MentorList: FC<Props> = ({
         mentors
           .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
           .slice(0, limit)
-          .map((item, index) => (
-            <ListItemWrapper
-              key={index}
-              id={item._id}
-              selectedId={selectedId}
-              handleSelect={handleSelect}
-            >
+          .map((item) => (
+            <ListItemWrapper key={item._id} id={item._id}>
               <ListItemAvatar img={item.avatar}>
                 <div className="w-64">
                   <Typography text={item.name} type="name" size="normal" />
@@ -61,17 +51,17 @@ const MentorList: FC<Props> = ({
                   size="small"
                 />
               </div>
+
               <ListItemControl
-                handleUpdate={() => handleUpdate(item._id)}
-                handleRemove={() => handleRemove(item._id)}
-                setEventId={setEventId}
-                name={item.name}
-                disabled={
-                  item.assignedClassroom > 0 || item.assignedStudent > 0
+                editNode={
+                  <UpdateContainer
+                    mentor={item}
+                    setMentors={setMentors}
+                    setEventId={setEventId}
+                  />
                 }
-              >
-                <UpdateForm />
-              </ListItemControl>
+                deleteNode={<></>}
+              />
             </ListItemWrapper>
           ))}
     </ul>

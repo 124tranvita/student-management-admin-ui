@@ -1,7 +1,7 @@
 import { FC, ReactNode } from "react";
 import { EventId } from "../constants";
 import Typography from "./typography";
-import { AssignFormModal, UnassignFormModal } from "./modal";
+import { AssignFormModal, UnassignFormModal } from "./modal-old";
 
 type Props = {
   children: ReactNode;

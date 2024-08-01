@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { Icons } from "../../commons/components";
-import { AssignModal } from "../../commons/components/modal";
+import { AssignModal } from "../../commons/components/modal-old";
 import { Mentor } from "../../commons/model";
 import AssignedStudentList from "./assigned-students";
 import UnassignStudentList from "./unassign-students";

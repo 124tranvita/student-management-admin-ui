@@ -10,12 +10,10 @@ import { Card } from "./cards";
 import Typography from "./typography";
 import {
   DialogModal,
-  UpdateFormModal,
-  DeleteFormModal,
-  AddFormModal,
   ConfirmModal,
   NoAssign,
-} from "./modal";
+  OpenFormModal,
+} from "./modal-old";
 import { ListItemAvatar, ListItemWrapper } from "./list-item";
 import { FormikTextInput, FormikSelect, FormikCheckbox } from "./formik";
 import { NavigatePanel } from "./navigate";
@@ -30,20 +28,19 @@ import * as Icons from "./icons";
 import * as Buttons from "./buttons";
 import { Dropdown } from "./dropdown";
 import { ToastMsgWrapper } from "./toast-message";
+import AuthContainer from "./auth-container";
 
 export {
   Wrapper,
   Card,
   Typography,
-  UpdateFormModal,
-  DeleteFormModal,
   ListItemAvatar,
   ListItemWrapper,
   FormikTextInput,
   FormikSelect,
   Buttons,
   DialogModal,
-  AddFormModal,
+  OpenFormModal,
   HashDiv,
   FixedContainer,
   AbsContainer,
@@ -62,4 +59,5 @@ export {
   Dropdown,
   ListWrapper,
   ToastMsgWrapper,
+  AuthContainer,
 };

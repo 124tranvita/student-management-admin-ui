@@ -1,52 +1,60 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect } from "react";
+import jwt_decode from "jwt-decode";
 import { FormikContext, useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
-import { FullContainer } from "../../../commons/components";
-import { SigninToken, signinTokenInitial } from "../../../commons/model";
+import { AuthContainer, FullContainer } from "../../../commons/components";
+import {
+  SigninToken,
+  signinTokenInitial,
+  Decoded,
+} from "../../../commons/model";
+import * as Constants from "../../../context/constants";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import useCallApi from "../../../hooks/useCallApi";
-import useTitle from "../../../hooks/useTitle";
+import useSetTitle from "../../../hooks/useSetTitle";
 import { useAuthContext } from "../../../hooks/useAuthContext";
-import { Button } from "../../../commons/components/buttons";
-import { useSilentRefreshToken } from "../../../hooks/useSilentRefreshToken";
-import { TOKEN_EXPIRY } from "../../../commons/constants";
 import SigninForm from "./signin-form";
 import { createValidationSchema } from "./validatation-schema";
 import { SigninFormikProps, signinFormikInitial } from "./types";
 
 const Signin: FC = () => {
   const navigate = useNavigate();
-  const [refreshToken, setRefreshToken] = useState<string>("");
-  const { setTitle } = useTitle();
   const { dispatchAuth } = useAuthContext();
-  useSilentRefreshToken(refreshToken, TOKEN_EXPIRY, dispatchAuth);
-
   const { callApi, response, isLoading, error } =
     useCallApi<SigninToken>(signinTokenInitial);
 
   /** Set page title */
-  useEffect(() => {
-    setTitle("Sign in");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useSetTitle("Sign in");
 
   /** Check API response */
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      setRefreshToken(response.data.refreshToken);
-      // Back to '/'
-      navigate(-1);
+      // Decode user info
+      const decoded: Decoded = jwt_decode(response.data.accessToken);
+
+      // Set login info to store
+      dispatchAuth({
+        type: Constants.ACT_USER_LOGIN,
+        payload: {
+          info: decoded,
+          tokens: response.data,
+        },
+      });
+      // Navigate to main page
+      navigate("/mentor");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
-  /** Sign in submit */
+  /** onSubmit event handler */
   const onSubmit = useCallback((values: SigninFormikProps) => {
+    // Make request data
     const data = {
       email: values.email,
       password: values.password,
     };
 
+    // Call API
     callApi("auth/signin-admin", {
       method: "POST",
       headers: {
@@ -78,32 +86,13 @@ const Signin: FC = () => {
   return (
     <FullContainer>
       <FormikContext.Provider value={formikBag}>
-        <div className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-          <div className="py-4 mb-3">
-            <div className="text-3xl text-center font-semibold ">
-              <span>Admin Panel</span>
-            </div>
-            <div className="text-sm text-center text-slate-400 mb-3 ">
-              <span>v1.0.0.1</span>
-            </div>
-            {error && (
-              <div className="text-sm font-semibold text-center text-red-400">
-                <span>{error?.message}</span>
-              </div>
-            )}
-            {isLoading && (
-              <div className="flex items-center justify-center space-x-2 animate-bounce ">
-                <div className="w-3 h-3 rounded-sm bg-blue-400 animate-spin"></div>
-                <div className="w-3 h-3 rounded-sm bg-green-400 animate-spin"></div>
-                <div className="w-3 h-3 rounded-sm bg-black animate-spin"></div>
-              </div>
-            )}
-          </div>
+        <AuthContainer
+          error={error}
+          isLoading={isLoading}
+          handleSubmit={handleSubmit}
+        >
           <SigninForm />
-          <div className="mx-3 text-center">
-            <Button label="Singin" onClick={handleSubmit} variant="primary" />
-          </div>
-        </div>
+        </AuthContainer>
       </FormikContext.Provider>
     </FullContainer>
   );

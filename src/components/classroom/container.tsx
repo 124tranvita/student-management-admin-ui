@@ -23,7 +23,7 @@ import {
 import * as Constants from "../../commons/constants";
 import usePagination from "../../hooks/usePagination";
 import useCallApi from "../../hooks/useCallApi";
-import useTitle from "../../hooks/useTitle";
+import useTitle from "../../hooks/useSetTitle";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import ClassroomList from "./classroom-list";
 import { createValidationSchema } from "./validatation-schema";

@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Error, Response } from "./model";
+import { Error } from "./model";
 import { EventId, HttpStatusCode, ResponseResult } from "./constants";
 
 export const classNames = (
@@ -13,7 +13,9 @@ export const compareObjectId = (id1: string, id2: string) => {
   return _.isEqual(id1, id2);
 };
 
-export const isResponseSuccessfully = <T>(response: Response<T>) => {
+export const isResponseSuccessfully = <T extends { status: string }>(
+  response: T
+) => {
   return _.isEqual(response.status, ResponseResult.success);
 };
 
