@@ -25,7 +25,7 @@ export const FlexContainer: React.FC<Props> = ({ children }) => {
 /** Wrapper container */
 export const Wrapper: React.FC<Props> = ({ children, onClick }) => {
   return (
-    <div className="relative w-full p-6">
+    <div className="relative w-full p-6 h-screen">
       <div className="fixed bottom-2 left-2">
         <button
           className="inline-flex justify-center rounded-md border border-transparent px-1 py-1 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 bg-red-100 text-red-900 hover:bg-red-200"

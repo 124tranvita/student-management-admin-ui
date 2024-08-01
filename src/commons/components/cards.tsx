@@ -13,7 +13,7 @@ const defaultCover =
 
 export const Card: React.FC<CardProps> = ({ children, avatar, cover }) => {
   return (
-    <div className="p-4">
+    <div className="pt-4">
       <div className="relative max-w-sm rounded overflow-hidden">
         <img
           className="w-full h-card-classroom-img  object-cover"

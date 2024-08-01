@@ -52,8 +52,6 @@ const UpdateContainer: React.FC<Props> = ({
     resolver: yupResolver(validationSchema),
   });
 
-  console.log({ errors });
-
   /** Custom hooks */
   const { userInfo } = useAuthContext();
   const { callApi, response, isLoading, error } = useCallApi<Response<Mentor>>({

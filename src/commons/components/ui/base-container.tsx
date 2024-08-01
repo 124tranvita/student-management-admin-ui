@@ -1,13 +1,11 @@
 import React, { ReactNode } from "react";
 import { SelectIdProvider } from "../../../context/SelectIdContext";
-import { ListWrapper } from "../container";
 
 type Props = {
   renderNavigate: () => ReactNode;
   renderTopControl: () => ReactNode;
   renderDetailInfo: () => ReactNode;
   renderItemList: () => ReactNode;
-  renderPagination: () => ReactNode;
 };
 
 const BaseContainer: React.FC<Props> = (props) => {
@@ -27,11 +25,8 @@ const BaseContainer: React.FC<Props> = (props) => {
             <div className="flex justify-end w-full mb-3">
               {props.renderTopControl()}
             </div>
-            <div className="flex flex-col justify-between">
-              <>
-                <ListWrapper>{props.renderItemList()}</ListWrapper>
-                <>{props.renderPagination()}</>
-              </>
+            <div className="flex flex-col justify-between min-h-full">
+              <>{props.renderItemList()}</>
             </div>
           </div>
         </>

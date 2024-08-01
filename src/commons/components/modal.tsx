@@ -66,7 +66,7 @@ const Modal: React.FC<Props> = ({
               </h2>
               <hr className="my-3" />
               {/* body */}
-              <div className="mb-4 h-[75vh] overflow-y-auto">
+              <div className="mb-4 max-h-[75vh] overflow-y-auto">
                 <div>{children}</div>
               </div>
               {/* footer */}

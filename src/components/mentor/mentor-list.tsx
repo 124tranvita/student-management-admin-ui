@@ -9,6 +9,7 @@ import { ListItemControl } from "../../commons/components/list-item";
 import { isBefore } from "../../commons/date-func";
 import { capitalize, getStatus } from "../../commons/utils";
 import UpdateContainer from "./update";
+import DeleteContainer from "./delete";
 
 type Props = {
   mentors: Mentor[];
@@ -53,7 +54,13 @@ const MentorList: FC<Props> = ({ mentors, limit, setMentors, setEventId }) => {
                     setEventId={setEventId}
                   />
                 }
-                deleteNode={<></>}
+                deleteNode={
+                  <DeleteContainer
+                    mentorId={item._id}
+                    setMentors={setMentors}
+                    setEventId={setEventId}
+                  />
+                }
               />
             </ListItemWrapper>
           ))}

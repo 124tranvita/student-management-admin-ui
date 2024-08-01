@@ -1,14 +1,38 @@
-import { FC } from "react";
+import { FC, useEffect, useMemo } from "react";
+import { useSelectId } from "../../hooks/useSelectId";
 import { Mentor } from "../../commons/model";
 import { Card, HashDiv, Typography } from "../../commons/components";
 import { capitalize, getEduction } from "../../commons/utils";
 import * as Constants from "../../commons/constants";
 
 type MentorInfoProps = {
-  mentor: Mentor;
+  mentors: Mentor[];
 };
 
-const MentorInfo: FC<MentorInfoProps> = ({ mentor }) => {
+const MentorInfo: FC<MentorInfoProps> = ({ mentors }) => {
+  const { selectedId, setSelectedId } = useSelectId();
+
+  console.log({ selectedId });
+
+  const mentor = useMemo(() => {
+    return mentors.find((item: Mentor) => item._id === selectedId);
+  }, [mentors, selectedId]);
+
+  useEffect(() => {
+    if (!selectedId || !mentor) {
+      setSelectedId(mentors[0]._id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mentors, mentor]);
+
+  if (!mentor) {
+    return (
+      <>
+        <div>No data</div>
+      </>
+    );
+  }
+
   return (
     <Card avatar={mentor.avatar}>
       <div className="mb-6">

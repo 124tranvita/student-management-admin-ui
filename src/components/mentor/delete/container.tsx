@@ -12,6 +12,7 @@ import {
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import { Buttons, Typography } from "../../../commons/components";
 import Modal from "../../../commons/components/modal";
+import { DeleteIcon } from "../../../commons/components/icons";
 
 type Props = {
   mentorId: string;
@@ -19,7 +20,7 @@ type Props = {
   setMentors: React.Dispatch<React.SetStateAction<Mentor[]>>;
 };
 
-const CreateContainer: React.FC<Props> = ({
+const DeleteContainer: React.FC<Props> = ({
   mentorId,
   setEventId,
   setMentors,
@@ -36,7 +37,13 @@ const CreateContainer: React.FC<Props> = ({
   /** Check API response */
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      setMentors((prevState: Mentor[]) => [...prevState, response.data]);
+      setMentors((prevState: Mentor[]) => {
+        const filtered = prevState.filter(
+          (item: Mentor) => item._id !== response.data._id
+        );
+
+        return [...filtered];
+      });
     } else {
       console.error({ error });
     }
@@ -49,13 +56,14 @@ const CreateContainer: React.FC<Props> = ({
 
   /** Create Submit */
   const handleSubmit = useCallback(
-    () => {
+    (e: React.FormEvent<HTMLFormElement>) => {
       callApi(`mentor/${mentorId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${userInfo.tokens.accessToken}`,
         },
       });
+      e.preventDefault();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [callApi, mentorId, userInfo.tokens.accessToken]
@@ -74,16 +82,17 @@ const CreateContainer: React.FC<Props> = ({
 
   return (
     <>
-      <Buttons.Button
+      <Buttons.RoundedIconButton
         type="button"
-        label="Add"
         onClick={handleOpenModal}
-        variant="primary"
-      />
-      <form onSubmit={handleSubmit}>
+        variant="danger"
+      >
+        <DeleteIcon />
+      </Buttons.RoundedIconButton>
+      <form onSubmit={(e) => handleSubmit(e)}>
         <Modal
           type="delete"
-          title="Add new mentor"
+          title="Delete selected mentor"
           isLoading={isLoading}
           isOpen={isOpen}
           onClose={handleCloseModal}
@@ -95,4 +104,4 @@ const CreateContainer: React.FC<Props> = ({
   );
 };
 
-export default CreateContainer;
+export default DeleteContainer;

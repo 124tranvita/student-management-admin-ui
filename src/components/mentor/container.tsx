@@ -1,77 +1,44 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
-// import { FormikContext, useFormik } from "formik";
-import {
-  AbsContainer,
-  NavigatePanel,
-  Loader,
-  ComponentLoader,
-  Pagination,
-  Buttons,
-  ListWrapper,
-  ToastMsgWrapper,
-} from "../../commons/components";
-import {
-  Response,
-  Mentor,
-  responseInitial,
-  mentorInitial,
-} from "../../commons/model";
+import { NavigatePanel, Loader, Buttons } from "../../commons/components";
+import { Response, Mentor, responseInitial } from "../../commons/model";
 import {
   getMentorFilter,
-  getResponeMsg,
   isNotNullData,
   isResponseSuccessfully,
-  serializedDeleteResponse,
-  // serializedPatchResponse,
   storeHistory,
 } from "../../commons/utils";
+import {
+  BaseContainer,
+  ListWithPagination,
+  NoItemContainer,
+} from "../../commons/components/ui";
 import * as Constants from "../../commons/constants";
 import useCallApi from "../../hooks/useCallApi";
 import usePagination from "../../hooks/usePagination";
 import useSetTitle from "../../hooks/useSetTitle";
 import { useAuthContext } from "../../hooks/useAuthContext";
-import MentorList from "./mentor-list";
-// import { createValidationSchema } from "./validatation-schema";
-// import { MentorFormikProps, mentorFormikInitial } from "./types";
-import MentorInfo from "./mentor-info";
-import AssignPanel from "./assign-panel";
-// import { createValidateSubmission } from "./validate-submission";
-import NoItem from "./no-item";
 import { useEventManagement } from "../../hooks/useEventManagement";
 import CreateContainer from "./create/container";
-// import { SelectIdProvider } from "../../context/SelectIdContext";
-import { BaseContainer } from "../../commons/components/ui";
+import MentorList from "./mentor-list";
+import MentorInfo from "./mentor-info";
 
 const MentorContainer: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
-  const [mentor, setMentor] = useState<Mentor>();
   const [filter, setFilter] = useState<string>("0");
-  const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(Constants.PAGE_LIMIT);
-  // const [grossCnt, setGrossCnt] = useState<number>(0);
-  // const [eventId, setEventId] = useState<Constants.EventId>(
-  //   Constants.EventId.Init
-  // );
-
-  /** Open form modal */
-  // const [isOpen, setIsOpen] = useState<boolean>(false);
 
   /** Custom hooks */
   const { userInfo } = useAuthContext();
-  const { eventId, setEventId } = useEventManagement<Constants.EventId>(
+  const { setEventId, handlingEventId } = useEventManagement<Constants.EventId>(
     Constants.EventId.None
   );
-  console.log({ eventId });
   const { callApi, response, isLoading, error } = useCallApi<
-    Response<Mentor[]> | Response<Mentor>
-  >(
-    { ...responseInitial, data: [] } || {
-      ...responseInitial,
-      data: mentorInitial,
-    }
-  );
+    Response<Mentor[]>
+  >({ ...responseInitial, data: [] });
   const { setPaginationRange, setGrossCnt, setLimit } = usePagination();
+
+  /** Set pagination limit */
   setLimit(limit);
 
   /** Set page title */
@@ -92,77 +59,25 @@ const MentorContainer: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo.info.sub, filter]);
 
-  /** Check API response and set mentors data base on event type*/
+  /** Check API response*/
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      if (eventId === Constants.EventId.Delete) {
-        const updated = serializedDeleteResponse(mentors, response.data);
-        // setGrossCnt(grossCnt - 1);
-        setIsShowToastMsg(true);
-        return setMentors(updated as Mentor[]);
-      }
-
       setGrossCnt(response.grossCnt || 0);
-      return setMentors(response.data as Mentor[]);
+      return setMentors(response.data);
     }
 
+    setEventId(Constants.EventId.None);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
-  // useEffect(() => {
-  //   if (eventId === Constants.EventId.Update) return;
-  //   if (mentors && mentors.length > 0) {
-  //     setMentor(mentors[0]);
-  //   }
-  // }, [mentors]);
-
-  /** Get response status */
-  const toastMsgObj = useMemo(() => {
-    if (error) {
-      return {
-        status: error.status,
-        msg: error.message,
-      };
-    }
-
-    return {
-      status: response.status,
-      msg: getResponeMsg("mentor", ""),
-    };
-  }, [error, response.status, eventId]);
-
   /** Set component loading screen*/
-  // const isComponentLoading = useMemo(() => {
-  //   return (
-  //     isLoading &&
-  //     (eventId === Constants.EventId.Add ||
-  //       eventId === Constants.EventId.Update ||
-  //       eventId === Constants.EventId.Delete ||
-  //       eventId === Constants.EventId.Paging)
-  //   );
-  // }, [isLoading, eventId]);
-
-  /** Handle select mentor */
-  // const handleSelect = (value: string) => {
-  //   const mentor = mentors.find((item) => item._id === value);
-  //   if (mentor) {
-  //     setMentor(mentor);
-  //   }
-  // };
-
-  /** Handle remove mentor */
-  const handleRemove = useCallback(
-    (mentorId: string) => {
-      callApi(`mentor/${mentorId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${userInfo.tokens.accessToken}`,
-        },
-      });
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userInfo.tokens]
-  );
+  const isComponentLoading = useMemo(() => {
+    return (
+      isLoading &&
+      (handlingEventId(Constants.EventId.Paging) ||
+        handlingEventId(Constants.EventId.Filter))
+    );
+  }, [isLoading, handlingEventId]);
 
   /** Handle paging */
   const handlePaging = useCallback(
@@ -180,22 +95,25 @@ const MentorContainer: FC = () => {
       setPage(page);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userInfo.tokens]
+    [userInfo.tokens, filter]
   );
 
-  if (isLoading && eventId === Constants.EventId.Init) {
-    return (
-      <>
-        <Loader />
-      </>
-    );
+  if (isLoading && handlingEventId(Constants.EventId.None)) {
+    return <Loader />;
   }
 
   if (mentors && mentors.length === 0) {
     return (
-      <NoItem>
-        <CreateContainer setEventId={setEventId} setMentors={setMentors} />
-      </NoItem>
+      <NoItemContainer
+        navigation={() => (
+          <NavigatePanel
+            path={[{ name: "Mentors", to: "/mentor", destiny: true }]}
+          />
+        )}
+        placeholder={() => (
+          <CreateContainer setEventId={setEventId} setMentors={setMentors} />
+        )}
+      />
     );
   }
 
@@ -213,43 +131,35 @@ const MentorContainer: FC = () => {
             ]}
           />
         )}
-        renderDetailInfo={() =>
-          mentor && (
-            <>
-              <MentorInfo mentor={mentor} />
-              {mentor.roles === Constants.Role.Mentor &&
-                mentor.status === Constants.Status.Active && (
-                  <>
-                    <AssignPanel mentor={mentor} />
-                  </>
-                )}
-            </>
-          )
-        }
+        renderDetailInfo={() => <MentorInfo mentors={mentors} />}
         renderTopControl={() => (
           <>
-            <Buttons.SwitchButton filter={filter} setFilter={setFilter} />
+            <Buttons.SwitchButton
+              filter={filter}
+              setFilter={setFilter}
+              setEventId={setEventId}
+            />
             <Buttons.ReloadButton />
             <CreateContainer setEventId={setEventId} setMentors={setMentors} />
           </>
         )}
         renderItemList={() => (
-          <MentorList
-            mentors={mentors}
-            limit={limit}
-            setMentors={setMentors}
-            setEventId={setEventId}
-          />
-        )}
-        renderPagination={() => (
-          <Pagination
-            paginationRange={setPaginationRange()}
+          <ListWithPagination
             currentPage={page}
+            isLoading={isComponentLoading}
+            paginationRange={setPaginationRange()}
             handlePaging={handlePaging}
+            renderItemList={() => (
+              <MentorList
+                mentors={mentors}
+                limit={limit}
+                setMentors={setMentors}
+                setEventId={setEventId}
+              />
+            )}
           />
         )}
       />
-      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
     </>
   );
 };
