@@ -14,7 +14,7 @@ type Path = {
 
 export const NavigatePanel: FC<Path> = ({ path }) => {
   return (
-    <div className="absolute -top-6 left-4 z-50 w-full flex gap-2">
+    <div className="w-full flex gap-2">
       <div>
         <Dropdown />
       </div>

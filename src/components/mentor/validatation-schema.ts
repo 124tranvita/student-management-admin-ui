@@ -1,7 +1,7 @@
 import * as Yup from "yup";
 import { EventId } from "../../commons/constants";
 
-export const createValidationSchema = (eventId: EventId) => {
+export const createValidationSchema = (eventId: string) => {
   return Yup.object().shape({
     /** email */
     email: Yup.string().email("Email invalid.").required("Required"),
@@ -26,12 +26,12 @@ export const createValidationSchema = (eventId: EventId) => {
     /** language */
     languages: Yup.string().required("Required"),
     /** education */
-    // education: Yup.string().required("Required"),
+    education: Yup.string().required("Required"),
     /** specialized */
     specialized: Yup.string().required("Required"),
     /** avatar */
     avatar: Yup.string().required("Required"),
     /** role */
-    // roles: Yup.string().required("Required"),
+    roles: Yup.string().required("Required"),
   });
 };

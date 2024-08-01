@@ -25,7 +25,7 @@ import useCallApi from "../../hooks/useCallApi";
 import * as Constants from "../../commons/constants";
 import { dateFormatter } from "../../commons/time-func";
 import usePagination from "../../hooks/usePagination";
-import useTitle from "../../hooks/useTitle";
+import useTitle from "../../hooks/useSetTitle";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import StudentList from "./student-list";
 import { createValidationSchema } from "./validatation-schema";

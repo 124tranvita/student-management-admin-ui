@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Mentor } from "../../commons/model";
 import { Card, HashDiv, Typography } from "../../commons/components";
 import { capitalize, getEduction } from "../../commons/utils";
-import { Role } from "./constants";
+import * as Constants from "../../commons/constants";
 
 type MentorInfoProps = {
   mentor: Mentor;
@@ -20,7 +20,7 @@ const MentorInfo: FC<MentorInfoProps> = ({ mentor }) => {
           type="muted"
         />
       </div>
-      {mentor.roles === Role.Mentor && (
+      {mentor.roles === Constants.Role.Mentor && (
         <div className="mb-6">
           <Typography
             text={`Assigned classrooms: ${mentor.assignedClassroom}/6`}

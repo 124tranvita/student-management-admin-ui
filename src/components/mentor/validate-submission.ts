@@ -18,12 +18,11 @@ const makeCompareObj = (value: MentorFormikProps) => {
 
 export const createValidateSubmission = (
   values: MentorFormikProps,
-  eventId: EventId,
   response?: Mentor
 ) => {
   const errors = {} as Errors;
 
-  if (response && eventId === EventId.Update) {
+  if (response) {
     /** If mentor role have at least on assigned and change to admin role */
     const isHasAssignedStudent = response && response.assignedStudent > 0;
     const isHasAssignedClassroom = response && response.assignedClassroom > 0;

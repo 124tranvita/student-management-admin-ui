@@ -1,3 +1,3 @@
-import Mentor from "./container";
+import MentorContainer from "./container";
 
-export default Mentor;
+export default MentorContainer;

@@ -26,17 +26,15 @@ export const FlexContainer: React.FC<Props> = ({ children }) => {
 export const Wrapper: React.FC<Props> = ({ children, onClick }) => {
   return (
     <div className="relative w-full p-6">
-      <div className="absolute top-2 right-2">
+      <div className="fixed bottom-2 left-2">
         <button
           className="inline-flex justify-center rounded-md border border-transparent px-1 py-1 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 bg-red-100 text-red-900 hover:bg-red-200"
           onClick={onClick}
         >
-          <Icons.LogOutIcon />
+          <Icons.LogOutIcon width="32" height="32" />
         </button>
       </div>
-      <div className="fixed top-12 left-12 bottom-12 right-12 px-12 py-8 bg-white border border-slate-100 rounded-md shadow-lg hover:shadow-xl duration-300 overflow-y-auto">
-        <div className="flex justify-start p-4">{children}</div>
-      </div>
+      <div className="flex justify-start p-4">{children}</div>
     </div>
   );
 };
@@ -113,5 +111,9 @@ export const FullContainer: React.FC<Props> = ({ children }) => {
 
 /** List Wrapper */
 export const ListWrapper: React.FC<Props> = ({ children }) => {
-  return <div className="overflow-y-auto">{children}</div>;
+  return (
+    <div className="overflow-y-auto">
+      <ul className="h-full">{children}</ul>
+    </div>
+  );
 };
