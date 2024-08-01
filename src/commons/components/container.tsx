@@ -34,7 +34,7 @@ export const Wrapper: React.FC<Props> = ({ children, onClick }) => {
           <Icons.LogOutIcon width="32" height="32" />
         </button>
       </div>
-        <div className="flex justify-start p-4">{children}</div>
+      <div className="flex justify-start p-4">{children}</div>
     </div>
   );
 };
@@ -111,5 +111,9 @@ export const FullContainer: React.FC<Props> = ({ children }) => {
 
 /** List Wrapper */
 export const ListWrapper: React.FC<Props> = ({ children }) => {
-  return <div className="overflow-y-auto">{children}</div>;
+  return (
+    <div className="overflow-y-auto">
+      <ul className="h-full">{children}</ul>
+    </div>
+  );
 };

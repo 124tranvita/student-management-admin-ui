@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC } from "react";
 import { Mentor } from "../../commons/model";
 import {
   Typography,
@@ -13,19 +13,12 @@ import UpdateContainer from "./update";
 type Props = {
   mentors: Mentor[];
   limit: number;
-  handleSelect: (value: string) => void;
   setMentors: React.Dispatch<React.SetStateAction<Mentor[]>>;
   setEventId: (value: string) => void;
 };
-const MentorList: FC<Props> = ({
-  mentors,
-  limit,
-  // handleSelect,
-  setMentors,
-  setEventId,
-}) => {
+const MentorList: FC<Props> = ({ mentors, limit, setMentors, setEventId }) => {
   return (
-    <ul className="h-full">
+    <>
       {mentors &&
         mentors.length > 0 &&
         mentors
@@ -64,7 +57,7 @@ const MentorList: FC<Props> = ({
               />
             </ListItemWrapper>
           ))}
-    </ul>
+    </>
   );
 };
 

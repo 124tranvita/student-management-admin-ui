@@ -39,7 +39,8 @@ import AssignPanel from "./assign-panel";
 import NoItem from "./no-item";
 import { useEventManagement } from "../../hooks/useEventManagement";
 import CreateContainer from "./create/container";
-import { SelectIdProvider } from "../../context/SelectIdContext";
+// import { SelectIdProvider } from "../../context/SelectIdContext";
+import { BaseContainer } from "../../commons/components/ui";
 
 const MentorContainer: FC = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
@@ -48,13 +49,13 @@ const MentorContainer: FC = () => {
   const [isShowToastMsg, setIsShowToastMsg] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(Constants.PAGE_LIMIT);
-  const [grossCnt, setGrossCnt] = useState<number>(0);
+  // const [grossCnt, setGrossCnt] = useState<number>(0);
   // const [eventId, setEventId] = useState<Constants.EventId>(
   //   Constants.EventId.Init
   // );
 
   /** Open form modal */
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  // const [isOpen, setIsOpen] = useState<boolean>(false);
 
   /** Custom hooks */
   const { userInfo } = useAuthContext();
@@ -70,10 +71,8 @@ const MentorContainer: FC = () => {
       data: mentorInitial,
     }
   );
-  const { paginationRange } = usePagination({
-    limit,
-    grossCnt,
-  });
+  const { setPaginationRange, setGrossCnt, setLimit } = usePagination();
+  setLimit(limit);
 
   /** Set page title */
   useSetTitle("Mentors management");
@@ -98,7 +97,7 @@ const MentorContainer: FC = () => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
       if (eventId === Constants.EventId.Delete) {
         const updated = serializedDeleteResponse(mentors, response.data);
-        setGrossCnt(grossCnt - 1);
+        // setGrossCnt(grossCnt - 1);
         setIsShowToastMsg(true);
         return setMentors(updated as Mentor[]);
       }
@@ -110,12 +109,12 @@ const MentorContainer: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
-  useEffect(() => {
-    if (eventId === Constants.EventId.Update) return;
-    if (mentors && mentors.length > 0) {
-      setMentor(mentors[0]);
-    }
-  }, [mentors]);
+  // useEffect(() => {
+  //   if (eventId === Constants.EventId.Update) return;
+  //   if (mentors && mentors.length > 0) {
+  //     setMentor(mentors[0]);
+  //   }
+  // }, [mentors]);
 
   /** Get response status */
   const toastMsgObj = useMemo(() => {
@@ -133,23 +132,23 @@ const MentorContainer: FC = () => {
   }, [error, response.status, eventId]);
 
   /** Set component loading screen*/
-  const isComponentLoading = useMemo(() => {
-    return (
-      isLoading &&
-      (eventId === Constants.EventId.Add ||
-        eventId === Constants.EventId.Update ||
-        eventId === Constants.EventId.Delete ||
-        eventId === Constants.EventId.Paging)
-    );
-  }, [isLoading, eventId]);
+  // const isComponentLoading = useMemo(() => {
+  //   return (
+  //     isLoading &&
+  //     (eventId === Constants.EventId.Add ||
+  //       eventId === Constants.EventId.Update ||
+  //       eventId === Constants.EventId.Delete ||
+  //       eventId === Constants.EventId.Paging)
+  //   );
+  // }, [isLoading, eventId]);
 
   /** Handle select mentor */
-  const handleSelect = (value: string) => {
-    const mentor = mentors.find((item) => item._id === value);
-    if (mentor) {
-      setMentor(mentor);
-    }
-  };
+  // const handleSelect = (value: string) => {
+  //   const mentor = mentors.find((item) => item._id === value);
+  //   if (mentor) {
+  //     setMentor(mentor);
+  //   }
+  // };
 
   /** Handle remove mentor */
   const handleRemove = useCallback(
@@ -169,12 +168,15 @@ const MentorContainer: FC = () => {
   const handlePaging = useCallback(
     (page: number) => {
       setEventId(Constants.EventId.Paging);
-      callApi(`mentor?page=${page}&limit=${limit}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${userInfo.tokens.accessToken}`,
-        },
-      });
+      callApi(
+        `mentor?id=${userInfo.info.sub}&role=${filter}&page=${page}&limit=${limit}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${userInfo.tokens.accessToken}`,
+          },
+        }
+      );
       setPage(page);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,68 +200,57 @@ const MentorContainer: FC = () => {
   }
 
   return (
-    <SelectIdProvider>
-      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
-
-      {/* Left Panel */}
-      <div className="relative w-1/4">
-        <NavigatePanel
-          path={[
-            {
-              name: `Mentors: ${getMentorFilter(filter)}`,
-              to: "/mentor",
-              destiny: true,
-            },
-          ]}
-        />
-        {mentor && (
+    <>
+      <BaseContainer
+        renderNavigate={() => (
+          <NavigatePanel
+            path={[
+              {
+                name: `Mentors: ${getMentorFilter(filter)}`,
+                to: "/mentor",
+                destiny: true,
+              },
+            ]}
+          />
+        )}
+        renderDetailInfo={() =>
+          mentor && (
+            <>
+              <MentorInfo mentor={mentor} />
+              {mentor.roles === Constants.Role.Mentor &&
+                mentor.status === Constants.Status.Active && (
+                  <>
+                    <AssignPanel mentor={mentor} />
+                  </>
+                )}
+            </>
+          )
+        }
+        renderTopControl={() => (
           <>
-            <MentorInfo mentor={mentor} />
-            {mentor.roles === Constants.Role.Mentor &&
-              mentor.status === Constants.Status.Active && (
-                <>
-                  <AssignPanel mentor={mentor} />
-                </>
-              )}
+            <Buttons.SwitchButton filter={filter} setFilter={setFilter} />
+            <Buttons.ReloadButton />
+            <CreateContainer setEventId={setEventId} setMentors={setMentors} />
           </>
         )}
-      </div>
-
-      {/* Right Panel */}
-      <div className="relative w-3/4 p-4 h-75vh">
-        {isComponentLoading ? (
-          <div className="relative h-full">
-            <ComponentLoader />
-          </div>
-        ) : (
-          <ListWrapper>
-            <MentorList
-              mentors={mentors}
-              limit={limit}
-              setMentors={setMentors}
-              handleSelect={handleSelect}
-              setEventId={setEventId}
-            />
-          </ListWrapper>
+        renderItemList={() => (
+          <MentorList
+            mentors={mentors}
+            limit={limit}
+            setMentors={setMentors}
+            setEventId={setEventId}
+          />
         )}
-        <AbsContainer variant="top-right">
-          <span className="mr-2">
-            <Buttons.SwitchButton filter={filter} setFilter={setFilter} />
-          </span>
-          <span className="mr-2">
-            <Buttons.ReloadButton />
-          </span>
-          <CreateContainer setEventId={setEventId} setMentors={setMentors} />
-        </AbsContainer>
-        <div className="absolute -bottom-24 left-0 right-0">
+        renderPagination={() => (
           <Pagination
-            paginationRange={paginationRange}
+            paginationRange={setPaginationRange()}
             currentPage={page}
             handlePaging={handlePaging}
           />
-        </div>
-      </div>
-    </SelectIdProvider>
+        )}
+      />
+      {isShowToastMsg && <ToastMsgWrapper toastMsgObj={toastMsgObj} />}
+    </>
   );
 };
 

@@ -37,7 +37,7 @@ export const Button: React.FC<ButtonProps> = ({
   onClick,
 }) => {
   return (
-    <div className="mt-4">
+    <div className="mr-2">
       <button
         type={type}
         className={classNames(
