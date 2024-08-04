@@ -8,13 +8,13 @@ const range = (start: number, end: number) => {
 /**
  *usePagination custom hook:
  * 1. Use `setGrossCnt()` to set the gross count.
- * 2. Use `setLimit()` to set the limit.
- * 3. Use `setPaginationRange()` to generate the pagination array.
+ * 2. Use `setPaginationRange()` to generate the pagination array.
+ * @param limit Limit item per page
  * @returns  `{setPaginationRange, setGrossCnt, setLimit}`
  */
-const usePagination = () => {
+const usePagination = (limit: number) => {
   const grossCntRef = useRef<number>(0);
-  const limitRef = useRef<number>(0);
+  const limitRef = useRef<number>(limit);
   const totalRef = useRef<number>(0);
 
   /**
@@ -38,17 +38,7 @@ const usePagination = () => {
     grossCntRef.current = count;
   }, []);
 
-  /**
-   * Set limit
-   * @param - limit
-   */
-  const setLimit = useCallback((limit: number) => {
-    if (limitRef.current === limit) return;
-
-    limitRef.current = limit;
-  }, []);
-
-  return { setPaginationRange, setGrossCnt, setLimit };
+  return { setPaginationRange, setGrossCnt };
 };
 
 export default usePagination;

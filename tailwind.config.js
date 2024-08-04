@@ -20,7 +20,7 @@ export default {
         "80vw": "80vw",
       },
       backgroundImage: {
-        "signin-pattern": "url('/src/assets/images/sign-in-bg.jpg')",
+        "signin-pattern": "url('/src/assets/images/sign-in-bg.webp')",
       },
     },
   },

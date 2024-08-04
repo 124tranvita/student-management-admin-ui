@@ -1,28 +1,20 @@
-import { FC, ReactNode } from "react";
-import { Wrapper } from "../container";
+import { FC } from "react";
 import Typography from "../typography";
 
-type Props = {
-  navigation: () => ReactNode;
-  placeholder: () => ReactNode;
-};
-
-const NoItemContainer: FC<Props> = (props) => {
+const NoItemContainer: FC = () => {
   return (
-    <Wrapper>
+    <>
       <div className="w-full">
-        <>{props.navigation()}</>
-        <div className="flex flex-col text-center justify-center items-center place-items-center h-70vh bg-gray-100 rounded-md relative w-full p-4 mt-8">
+        <div className="flex flex-col text-center justify-center items-center place-items-center h-70vh bg-gray-100 rounded-md relative w-full p-4">
           <div className="mb-3">
             <Typography
               type="name"
-              text="There are no recorded yet. Please add one!"
+              text="No results found. Please try again with different search criteria or add once."
             />
           </div>
-          <div>{props.placeholder()}</div>
         </div>
       </div>
-    </Wrapper>
+    </>
   );
 };
 

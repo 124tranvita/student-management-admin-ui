@@ -1,36 +1,56 @@
-import { FC, useEffect, useMemo } from "react";
+import { FC, useEffect, useMemo, useRef } from "react";
+import * as _ from "lodash";
 import { useSelectId } from "../../hooks/useSelectId";
-import { Mentor } from "../../commons/model";
+import { Mentor, mentorInitial } from "../../commons/model";
 import { Card, HashDiv, Typography } from "../../commons/components";
 import { capitalize, getEduction } from "../../commons/utils";
 import * as Constants from "../../commons/constants";
+import { DetailInfoLoader } from "../../commons/components/skeletons";
 
 type MentorInfoProps = {
   mentors: Mentor[];
 };
 
 const MentorInfo: FC<MentorInfoProps> = ({ mentors }) => {
+  const prevSelectedItem = useRef<Mentor>(mentorInitial);
+  const foundFlag = useRef<boolean>(false);
+
+  /** Custom hooks */
   const { selectedId, setSelectedId } = useSelectId();
 
-  console.log({ selectedId });
-
+  /** Get mentor */
   const mentor = useMemo(() => {
-    return mentors.find((item: Mentor) => item._id === selectedId);
+    const found = mentors.find((item: Mentor) => item._id === selectedId);
+
+    if (found) {
+      prevSelectedItem.current = found;
+      foundFlag.current = true;
+      return found;
+    } else {
+      foundFlag.current = false;
+      if (!_.isEqual(prevSelectedItem.current, mentorInitial)) {
+        return prevSelectedItem.current;
+      }
+    }
   }, [mentors, selectedId]);
 
+  /** Run on `mentors` array changed
+   * 1. When array have more than 1 item, if `selectedId` or `foundFlag` is false, set the `selectedId` as first array item.
+   * 2. When array is empty, clear the `selectedId`
+   */
   useEffect(() => {
-    if (!selectedId || !mentor) {
-      setSelectedId(mentors[0]._id);
+    if (mentors[0]) {
+      if (!selectedId || !foundFlag.current) {
+        setSelectedId(mentors[0]._id);
+      }
+    } else {
+      setSelectedId("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mentors, mentor]);
+  }, [mentors]);
 
   if (!mentor) {
-    return (
-      <>
-        <div>No data</div>
-      </>
-    );
+    return <DetailInfoLoader />;
   }
 
   return (

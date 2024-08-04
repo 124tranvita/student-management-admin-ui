@@ -1,24 +1,35 @@
 import { FC, useCallback, useEffect } from "react";
 import jwt_decode from "jwt-decode";
-import { FormikContext, useFormik } from "formik";
-import { useNavigate } from "react-router-dom";
-import { AuthContainer, FullContainer } from "../../../commons/components";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as Constants from "../../../context/constants";
+import { Buttons } from "../../../commons/components";
 import {
   SigninToken,
   signinTokenInitial,
   Decoded,
 } from "../../../commons/model";
-import * as Constants from "../../../context/constants";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import useCallApi from "../../../hooks/useCallApi";
 import useSetTitle from "../../../hooks/useSetTitle";
 import { useAuthContext } from "../../../hooks/useAuthContext";
 import SigninForm from "./signin-form";
-import { createValidationSchema } from "./validatation-schema";
-import { SigninFormikProps, signinFormikInitial } from "./types";
+import { validationSchema } from "./validatation-schema";
+import { SigninFormType } from "./types";
+import { SignPageContainer } from "../../../commons/components/ui";
 
 const Signin: FC = () => {
-  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<SigninFormType>({
+    mode: "onBlur",
+    resolver: yupResolver(validationSchema),
+  });
+
+  /** Custom hooks */
   const { dispatchAuth } = useAuthContext();
   const { callApi, response, isLoading, error } =
     useCallApi<SigninToken>(signinTokenInitial);
@@ -40,14 +51,14 @@ const Signin: FC = () => {
           tokens: response.data,
         },
       });
-      // Navigate to main page
-      navigate("/mentor");
+
+      reset();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
   /** onSubmit event handler */
-  const onSubmit = useCallback((values: SigninFormikProps) => {
+  const onSubmit = useCallback((values: SigninFormType) => {
     // Make request data
     const data = {
       email: values.email,
@@ -65,36 +76,20 @@ const Signin: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Formik bag */
-  const formikBag = useFormik({
-    initialValues: signinFormikInitial,
-    // validate: (values) => createValidateSubmission(values, eventId, classroom),
-    validateOnBlur: false,
-    validationSchema: () => createValidationSchema(),
-    onSubmit: (values) => onSubmit(values),
-  });
-
-  /** Handle submit */
-  const handleSubmit = useCallback(() => {
-    try {
-      formikBag.submitForm();
-    } catch (error) {
-      console.log(error);
-    }
-  }, [formikBag]);
-
   return (
-    <FullContainer>
-      <FormikContext.Provider value={formikBag}>
-        <AuthContainer
-          error={error}
-          isLoading={isLoading}
-          handleSubmit={handleSubmit}
-        >
-          <SigninForm />
-        </AuthContainer>
-      </FormikContext.Provider>
-    </FullContainer>
+    <SignPageContainer error={error} isLoading={isLoading}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <SigninForm register={register} errors={errors} />
+        <div className="mx-3 text-center">
+          <Buttons.Button
+            label="Singin"
+            type="submit"
+            variant="primary"
+            disabled={isLoading}
+          />
+        </div>
+      </form>
+    </SignPageContainer>
   );
 };
 

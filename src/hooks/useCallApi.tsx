@@ -1,18 +1,18 @@
 import { useReducer } from "react";
-import { Error } from "../commons/model";
+import { Response, responseInitial } from "../commons/model";
 import * as Constants from "./constants";
 import { useRefreshToken } from "./useRefreshToken";
 
 type StateType<T> = {
   isLoading: boolean;
-  error: Error | null;
-  response: T;
+  error: string | null;
+  response: Response<T>;
 };
 
 type ActionType<T> = {
   type: Constants.Types;
-  payload: T;
-  error: Error | null;
+  payload: Response<T>;
+  error: string | null;
 };
 
 const useCallApiReducer = <T,>(
@@ -50,7 +50,7 @@ const useCallApi = <T,>(initData: T) => {
   const [state, dispatch] = useReducer(useCallApiReducer<T>, {
     isLoading: false,
     error: null,
-    response: initData as T,
+    response: { ...responseInitial, data: initData as T },
   });
 
   const callApi = async (path: string, options: object) => {
@@ -68,18 +68,23 @@ const useCallApi = <T,>(initData: T) => {
       let response = await fetch(URL, options);
 
       // Check if the token is expired
-      if (response.status === 401) {
-        // Token expired, refresh the token
-        const newAccessToken = await refreshAccessToken();
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired, refresh the token
+          const newAccessToken = await refreshAccessToken();
 
-        // Retry the original request with the new access token
-        response = await fetch(URL, {
-          ...options,
-          headers: {
-            Authorization: `Bearer ${newAccessToken}`,
-            "Content-Type": "application/json",
-          },
-        });
+          // Retry the original request with the new access token
+          response = await fetch(URL, {
+            ...options,
+            headers: {
+              Authorization: `Bearer ${newAccessToken}`,
+              "Content-Type": "application/json",
+            },
+          });
+        } else {
+          const error = await response.json();
+          throw new Error(error.message);
+        }
       }
 
       const data = await response.json();
@@ -90,13 +95,14 @@ const useCallApi = <T,>(initData: T) => {
         error: null,
       });
     } catch (error: unknown | Error) {
-      console.error({ error });
-      // Set the error
-      dispatch({
-        type: Constants.ACT_API_FAILURE,
-        payload: state.response,
-        error: error as Error,
-      });
+      if (error && error instanceof Error) {
+        // Set the error
+        dispatch({
+          type: Constants.ACT_API_FAILURE,
+          payload: state.response,
+          error: error.message,
+        });
+      }
     }
   };
 

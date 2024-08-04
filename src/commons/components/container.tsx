@@ -34,7 +34,7 @@ export const Wrapper: React.FC<Props> = ({ children, onClick }) => {
           <Icons.LogOutIcon width="32" height="32" />
         </button>
       </div>
-      <div className="flex justify-start p-4">{children}</div>
+      <div className="flex justify-start h-full p-4">{children}</div>
     </div>
   );
 };

@@ -11,11 +11,14 @@ import { getStoreHistory } from "./commons/utils";
 import * as Constants from "./context/constants";
 import { useInfInitial } from "./commons/model";
 import { EventManagementProvider } from "./context/EventManagementContext";
+import { SearchQueryProvider } from "./context/SearchQueryContext";
 
 function App() {
   const history = getStoreHistory();
   const navigate = useNavigate();
   const { userInfo, dispatchAuth } = useAuthContext();
+
+  console.log({ userInfo });
   // const { clearRefInterval } = useSilentRefreshToken(
   //   signinToken.refreshToken,
   //   TOKEN_EXPIRY,
@@ -38,35 +41,37 @@ function App() {
     <div>
       {/* <LoginInfContextProvider> */}
       <EventManagementProvider>
-        <Routes>
-          {publicPages.map((page: Pages, index: number) => (
-            <Route
-              key={index}
-              path={page.path}
-              element={
-                !userInfo.tokens.accessToken ? (
-                  <>{page.page}</>
-                ) : (
-                  <Navigate to={history} />
-                )
-              }
-            />
-          ))}
+        <SearchQueryProvider>
+          <Routes>
+            {publicPages.map((page: Pages, index: number) => (
+              <Route
+                key={index}
+                path={page.path}
+                element={
+                  !userInfo.tokens.accessToken ? (
+                    <>{page.page}</>
+                  ) : (
+                    <Navigate to={history || "/mentor"} />
+                  )
+                }
+              />
+            ))}
 
-          {privatePages.map((page, index: number) => (
-            <Route
-              key={index}
-              path={page.path}
-              element={
-                userInfo.tokens.accessToken ? (
-                  <Wrapper onClick={handleSignOut}>{page.page}</Wrapper>
-                ) : (
-                  <Navigate to="/signin" />
-                )
-              }
-            />
-          ))}
-        </Routes>
+            {privatePages.map((page, index: number) => (
+              <Route
+                key={index}
+                path={page.path}
+                element={
+                  userInfo.tokens.accessToken ? (
+                    <Wrapper onClick={handleSignOut}>{page.page}</Wrapper>
+                  ) : (
+                    <Navigate to="/signin" />
+                  )
+                }
+              />
+            ))}
+          </Routes>
+        </SearchQueryProvider>
       </EventManagementProvider>
       {/* </LoginInfContextProvider> */}
     </div>

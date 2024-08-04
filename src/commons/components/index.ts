@@ -28,7 +28,6 @@ import * as Icons from "./icons";
 import * as Buttons from "./buttons";
 import { Dropdown } from "./dropdown";
 import { ToastMsgWrapper } from "./toast-message";
-import AuthContainer from "./auth-container";
 
 export {
   Wrapper,
@@ -59,5 +58,4 @@ export {
   Dropdown,
   ListWrapper,
   ToastMsgWrapper,
-  AuthContainer,
 };

@@ -10,6 +10,7 @@ import { isBefore } from "../../commons/date-func";
 import { capitalize, getStatus } from "../../commons/utils";
 import UpdateContainer from "./update";
 import DeleteContainer from "./delete";
+import { NoItemContainer } from "../../commons/components/ui";
 
 type Props = {
   mentors: Mentor[];
@@ -20,8 +21,7 @@ type Props = {
 const MentorList: FC<Props> = ({ mentors, limit, setMentors, setEventId }) => {
   return (
     <>
-      {mentors &&
-        mentors.length > 0 &&
+      {mentors && mentors.length > 0 ? (
         mentors
           .sort((a, b) => (isBefore(a.createdAt, b.createdAt) ? 1 : -1))
           .slice(0, limit)
@@ -63,7 +63,12 @@ const MentorList: FC<Props> = ({ mentors, limit, setMentors, setEventId }) => {
                 }
               />
             </ListItemWrapper>
-          ))}
+          ))
+      ) : (
+        <>
+          <NoItemContainer />
+        </>
+      )}
     </>
   );
 };

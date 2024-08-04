@@ -160,19 +160,13 @@ export const assignClassroomMentorInitial: AssignClassroomMentor = {
 };
 
 export type SigninToken = {
-  status: string;
-  data: {
-    accessToken: string;
-    refreshToken: string;
-  };
+  accessToken: string;
+  refreshToken: string;
 };
 
 export const signinTokenInitial: SigninToken = {
-  status: "",
-  data: {
-    accessToken: "",
-    refreshToken: "",
-  },
+  accessToken: "",
+  refreshToken: "",
 };
 
 export type Decoded = {
@@ -182,25 +176,21 @@ export type Decoded = {
   exp: number;
 };
 
+export const decodeInitial: Decoded = {
+  sub: "",
+  email: "",
+  iat: 0,
+  exp: 0,
+};
+
 export type UserInf = {
   info: Decoded;
-  tokens: {
-    accessToken: string;
-    refreshToken: string;
-  };
+  tokens: SigninToken;
 };
 
 export const useInfInitial: UserInf = {
-  info: {
-    sub: "",
-    email: "",
-    iat: 0,
-    exp: 0,
-  },
-  tokens: {
-    accessToken: "",
-    refreshToken: "",
-  },
+  info: decodeInitial,
+  tokens: signinTokenInitial,
 };
 
 export type Error = {

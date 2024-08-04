@@ -1,18 +1,12 @@
 // src/components/mentor/delete/container.tsx
 import React, { useCallback, useEffect, useState } from "react";
-import { useAuthContext } from "../../../hooks/useAuthContext";
-import useCallApi from "../../../hooks/useCallApi";
 import * as Constants from "../../../commons/constants";
-import {
-  Response,
-  Mentor,
-  responseInitial,
-  mentorInitial,
-} from "../../../commons/model";
+import { Mentor, mentorInitial } from "../../../commons/model";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import { Buttons, Typography } from "../../../commons/components";
 import Modal from "../../../commons/components/modal";
 import { DeleteIcon } from "../../../commons/components/icons";
+import useCallMentorApi from "../hooks/useCallMentorApi";
 
 type Props = {
   mentorId: string;
@@ -28,11 +22,8 @@ const DeleteContainer: React.FC<Props> = ({
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   /** Custom hooks */
-  const { userInfo } = useAuthContext();
-  const { callApi, response, isLoading, error } = useCallApi<Response<Mentor>>({
-    ...responseInitial,
-    data: mentorInitial,
-  });
+  const { callApiOnDelete, response, isLoading, error } =
+    useCallMentorApi<Mentor>(mentorInitial);
 
   /** Check API response */
   useEffect(() => {
@@ -45,28 +36,24 @@ const DeleteContainer: React.FC<Props> = ({
         return [...filtered];
       });
     } else {
-      console.error({ error });
+      if (error) {
+        console.error({ error });
+      }
     }
 
     // Reset form them close modal on success
     setIsOpen(false);
     setEventId(Constants.EventId.None);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
+  }, [response, error]);
 
-  /** Create Submit */
+  /** Handle submit */
   const handleSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
-      callApi(`mentor/${mentorId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${userInfo.tokens.accessToken}`,
-        },
-      });
+      callApiOnDelete(mentorId);
       e.preventDefault();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [callApi, mentorId, userInfo.tokens.accessToken]
+    [callApiOnDelete, mentorId]
   );
 
   /** Handle open modal */

@@ -2,21 +2,15 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useAuthContext } from "../../../hooks/useAuthContext";
-import useCallApi from "../../../hooks/useCallApi";
 import * as Constants from "../../../commons/constants";
-import {
-  Response,
-  Mentor,
-  responseInitial,
-  mentorInitial,
-} from "../../../commons/model";
+import { Mentor, mentorInitial } from "../../../commons/model";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import { Buttons } from "../../../commons/components";
 import Modal from "../../../commons/components/modal";
 import { CreateFormType } from "./type";
 import { validationSchema } from "./validatation-schema";
 import CreateForm from "./create-form";
+import useCallMentorApi from "../hooks/useCallMentorApi";
 
 type Props = {
   setEventId: (value: string) => void;
@@ -36,18 +30,17 @@ const CreateContainer: React.FC<Props> = ({ setEventId, setMentors }) => {
   });
 
   /** Custom hooks */
-  const { userInfo } = useAuthContext();
-  const { callApi, response, isLoading, error } = useCallApi<Response<Mentor>>({
-    ...responseInitial,
-    data: mentorInitial,
-  });
+  const { callApiOnCreate, response, isLoading, error } =
+    useCallMentorApi<Mentor>(mentorInitial);
 
   /** Check API response */
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
       setMentors((prevState: Mentor[]) => [...prevState, response.data]);
     } else {
-      console.error({ error });
+      if (error) {
+        console.error({ error });
+      }
     }
 
     // Reset form them close modal on success
@@ -55,9 +48,9 @@ const CreateContainer: React.FC<Props> = ({ setEventId, setMentors }) => {
     setIsOpen(false);
     setEventId(Constants.EventId.None);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
+  }, [response, error]);
 
-  /** Create Submit */
+  /** Handle submit */
   const onSubmit = useCallback(
     (values: CreateFormType) => {
       const data = {
@@ -73,17 +66,10 @@ const CreateContainer: React.FC<Props> = ({ setEventId, setMentors }) => {
         roles: values.roles,
       };
 
-      callApi("mentor", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${userInfo.tokens.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      callApiOnCreate<Omit<CreateFormType, "languages">>(data);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [callApi, userInfo.tokens.accessToken]
+
+    [callApiOnCreate]
   );
 
   /** Handle open modal */

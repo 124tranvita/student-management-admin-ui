@@ -55,12 +55,6 @@ const UpdateForm: FC<Props> = ({ register, errors }) => {
         {...register("roles")}
       />
       <Select
-        label="Role"
-        errors={errors}
-        items={roleItems}
-        {...register("roles")}
-      />
-      <Select
         label="Status"
         errors={errors}
         items={statusItems}

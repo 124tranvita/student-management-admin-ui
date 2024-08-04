@@ -1,22 +1,21 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { NavigatePanel, Loader, Buttons } from "../../commons/components";
-import { Response, Mentor, responseInitial } from "../../commons/model";
+import { Mentor } from "../../commons/model";
 import {
   getMentorFilter,
-  isNotNullData,
   isResponseSuccessfully,
   storeHistory,
 } from "../../commons/utils";
 import {
   BaseContainer,
   ListWithPagination,
-  NoItemContainer,
+  SearchInput,
 } from "../../commons/components/ui";
 import * as Constants from "../../commons/constants";
-import useCallApi from "../../hooks/useCallApi";
 import usePagination from "../../hooks/usePagination";
 import useSetTitle from "../../hooks/useSetTitle";
-import { useAuthContext } from "../../hooks/useAuthContext";
+import useCallMentorApi from "./hooks/useCallMentorApi";
+import { useSearchQuery } from "../../hooks/useSearchQuery";
 import { useEventManagement } from "../../hooks/useEventManagement";
 import CreateContainer from "./create/container";
 import MentorList from "./mentor-list";
@@ -29,41 +28,48 @@ const MentorContainer: FC = () => {
   const [limit] = useState<number>(Constants.PAGE_LIMIT);
 
   /** Custom hooks */
-  const { userInfo } = useAuthContext();
+  const {
+    callApiOnInit,
+    callApiOnValueChange,
+    callApiOnPaging,
+    response,
+    isLoading,
+    error,
+  } = useCallMentorApi<Mentor[]>([]);
   const { setEventId, handlingEventId } = useEventManagement<Constants.EventId>(
     Constants.EventId.None
   );
-  const { callApi, response, isLoading, error } = useCallApi<
-    Response<Mentor[]>
-  >({ ...responseInitial, data: [] });
-  const { setPaginationRange, setGrossCnt, setLimit } = usePagination();
-
-  /** Set pagination limit */
-  setLimit(limit);
+  const { setPaginationRange, setGrossCnt } = usePagination(limit);
+  const { queryString } = useSearchQuery(setEventId);
 
   /** Set page title */
   useSetTitle("Mentors management");
 
-  /** Get mentor list at init */
+  /** Run this request only at init */
   useEffect(() => {
+    setEventId(Constants.EventId.Init);
     storeHistory("/mentor");
-    callApi(
-      `mentor?id=${userInfo.info.sub}&role=${filter}&page=${page}&limit=${limit}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${userInfo.tokens.accessToken}`,
-        },
-      }
-    );
+    callApiOnInit(limit);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo.info.sub, filter]);
+  }, []);
+
+  /** Run this request when search query or filter changed */
+  useEffect(() => {
+    if (handlingEventId(Constants.EventId.Init)) return;
+
+    callApiOnValueChange(page, limit, filter, queryString);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, queryString]);
 
   /** Check API response*/
   useEffect(() => {
-    if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
+    if (isResponseSuccessfully(response)) {
       setGrossCnt(response.grossCnt || 0);
       return setMentors(response.data);
+    } else {
+      if (error) {
+        console.error({ error });
+      }
     }
 
     setEventId(Constants.EventId.None);
@@ -75,6 +81,7 @@ const MentorContainer: FC = () => {
     return (
       isLoading &&
       (handlingEventId(Constants.EventId.Paging) ||
+        handlingEventId(Constants.EventId.Search) ||
         handlingEventId(Constants.EventId.Filter))
     );
   }, [isLoading, handlingEventId]);
@@ -83,38 +90,14 @@ const MentorContainer: FC = () => {
   const handlePaging = useCallback(
     (page: number) => {
       setEventId(Constants.EventId.Paging);
-      callApi(
-        `mentor?id=${userInfo.info.sub}&role=${filter}&page=${page}&limit=${limit}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${userInfo.tokens.accessToken}`,
-          },
-        }
-      );
+      callApiOnPaging(page, limit, filter);
       setPage(page);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [userInfo.tokens, filter]
+    [setEventId, callApiOnPaging, limit, filter]
   );
 
   if (isLoading && handlingEventId(Constants.EventId.None)) {
     return <Loader />;
-  }
-
-  if (mentors && mentors.length === 0) {
-    return (
-      <NoItemContainer
-        navigation={() => (
-          <NavigatePanel
-            path={[{ name: "Mentors", to: "/mentor", destiny: true }]}
-          />
-        )}
-        placeholder={() => (
-          <CreateContainer setEventId={setEventId} setMentors={setMentors} />
-        )}
-      />
-    );
   }
 
   return (
@@ -132,6 +115,7 @@ const MentorContainer: FC = () => {
           />
         )}
         renderDetailInfo={() => <MentorInfo mentors={mentors} />}
+        renderSearchInput={() => <SearchInput setEventId={setEventId} />}
         renderTopControl={() => (
           <>
             <Buttons.SwitchButton
