@@ -7,12 +7,12 @@ import { Mentor, mentorInitial } from "../../../commons/model";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import { Buttons } from "../../../commons/components";
 import { EditIcon } from "../../../commons/components/icons";
-import Modal from "../../../commons/components/modal";
 import { UpdateFormType } from "./type";
 import { validationSchema } from "./validatation-schema";
 import UpdateForm from "./update-form";
 import { validateSubmission } from "./validate-submission";
 import useCallMentorApi from "../hooks/useCallMentorApi";
+import { Modal } from "../../../commons/compound-components";
 
 type Props = {
   mentor: Mentor;
@@ -49,6 +49,21 @@ const UpdateContainer: React.FC<Props> = ({
   /** Custom hooks */
   const { callApiOnUpdate, response, isLoading, error } =
     useCallMentorApi<Mentor>(mentorInitial);
+
+  /** Trigger to reset defaultValues when the value is changed */
+  useEffect(() => {
+    const values = {
+      email: mentor.email,
+      name: mentor.name,
+      languages: mentor.languages.toString(),
+      education: mentor.education,
+      specialized: mentor.specialized,
+      avatar: mentor.avatar,
+      roles: mentor.roles,
+    };
+
+    reset(values);
+  }, [mentor, reset]);
 
   /** Check API response */
   useEffect(() => {
@@ -127,15 +142,16 @@ const UpdateContainer: React.FC<Props> = ({
         <EditIcon />
       </Buttons.RoundedIconButton>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Modal
-          type="update"
-          title={`Update mentor ${mentor.name}`}
-          isLoading={isLoading}
-          isOpen={isOpen}
-          onClose={handleCloseModal}
-        >
-          <UpdateForm register={register} errors={errors} />
-        </Modal>
+        <Modal.Wrapper isOpen={isOpen}>
+          <Modal.Form
+            type="update"
+            title={`Update mentor ${mentor.name}`}
+            isLoading={isLoading}
+            onClose={handleCloseModal}
+          >
+            <UpdateForm register={register} errors={errors} />
+          </Modal.Form>
+        </Modal.Wrapper>
       </form>
     </>
   );

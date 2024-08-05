@@ -1,11 +1,12 @@
 import { FC, useEffect, useMemo, useRef } from "react";
 import * as _ from "lodash";
-import { useSelectId } from "../../hooks/useSelectId";
-import { Mentor, mentorInitial } from "../../commons/model";
-import { Card, HashDiv, Typography } from "../../commons/components";
-import { capitalize, getEduction } from "../../commons/utils";
-import * as Constants from "../../commons/constants";
-import { DetailInfoLoader } from "../../commons/components/skeletons";
+import { useSelectId } from "../../../hooks/useSelectId";
+import { Mentor, mentorInitial } from "../../../commons/model";
+import { Card, HashDiv, Typography } from "../../../commons/components";
+import { capitalize, getEduction } from "../../../commons/utils";
+import * as Constants from "../../../commons/constants";
+import { DetailInfoLoader } from "../../../commons/components/skeletons";
+import ClassroomManagementPanel from "../classroom-management/assignment-panel";
 
 type MentorInfoProps = {
   mentors: Mentor[];
@@ -80,6 +81,7 @@ const MentorInfo: FC<MentorInfoProps> = ({ mentors }) => {
         mentor.languages.map((item: string, index: number) => (
           <HashDiv key={index} value={item} />
         ))}
+      <ClassroomManagementPanel id={mentor._id} />
     </Card>
   );
 };

@@ -6,11 +6,11 @@ import * as Constants from "../../../commons/constants";
 import { Mentor, mentorInitial } from "../../../commons/model";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import { Buttons } from "../../../commons/components";
-import Modal from "../../../commons/components/modal";
 import { CreateFormType } from "./type";
 import { validationSchema } from "./validatation-schema";
 import CreateForm from "./create-form";
 import useCallMentorApi from "../hooks/useCallMentorApi";
+import { Modal } from "../../../commons/compound-components";
 
 type Props = {
   setEventId: (value: string) => void;
@@ -93,15 +93,16 @@ const CreateContainer: React.FC<Props> = ({ setEventId, setMentors }) => {
         variant="primary"
       />
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Modal
-          type="add"
-          title="Add new mentor"
-          isLoading={isLoading}
-          isOpen={isOpen}
-          onClose={handleCloseModal}
-        >
-          <CreateForm register={register} errors={errors} />
-        </Modal>
+        <Modal.Wrapper isOpen={isOpen}>
+          <Modal.Form
+            type="add"
+            title="Add new mentor"
+            isLoading={isLoading}
+            onClose={handleCloseModal}
+          >
+            <CreateForm register={register} errors={errors} />
+          </Modal.Form>
+        </Modal.Wrapper>
       </form>
     </>
   );

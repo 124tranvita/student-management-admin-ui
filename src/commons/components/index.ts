@@ -4,7 +4,6 @@ import {
   FixedContainer,
   AbsContainer,
   FullContainer,
-  ListWrapper,
 } from "./container";
 import { Card } from "./cards";
 import Typography from "./typography";
@@ -56,6 +55,5 @@ export {
   ConfirmModal,
   FullContainer,
   Dropdown,
-  ListWrapper,
   ToastMsgWrapper,
 };

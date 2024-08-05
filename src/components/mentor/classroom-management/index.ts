@@ -1,3 +1,3 @@
-import ClassroomManagementPanel from "./classroom-management-panel";
+import ClassroomManagementPanel from "./assignment-panel";
 
 export default ClassroomManagementPanel;

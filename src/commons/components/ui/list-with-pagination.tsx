@@ -1,6 +1,6 @@
 import { FC, ReactNode } from "react";
+import { List } from "../../compound-components";
 import { Pagination } from "../pagination";
-import { ListWrapper } from "../container";
 import { ComponentLoader } from "../loader";
 
 type Props = {
@@ -25,7 +25,7 @@ const ListWithPagination: FC<Props> = (props) => {
   return (
     <>
       {/* render list of item */}
-      <ListWrapper>{props.renderItemList()}</ListWrapper>
+      <List.Wrapper>{props.renderItemList()}</List.Wrapper>
       {/* pagination */}
       <>
         <Pagination

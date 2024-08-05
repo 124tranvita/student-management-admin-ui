@@ -4,9 +4,10 @@ import * as Constants from "../../../commons/constants";
 import { Mentor, mentorInitial } from "../../../commons/model";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import { Buttons, Typography } from "../../../commons/components";
-import Modal from "../../../commons/components/modal";
+
 import { DeleteIcon } from "../../../commons/components/icons";
 import useCallMentorApi from "../hooks/useCallMentorApi";
+import { Modal } from "../../../commons/compound-components";
 
 type Props = {
   mentorId: string;
@@ -77,15 +78,16 @@ const DeleteContainer: React.FC<Props> = ({
         <DeleteIcon />
       </Buttons.RoundedIconButton>
       <form onSubmit={(e) => handleSubmit(e)}>
-        <Modal
-          type="delete"
-          title="Delete selected mentor"
-          isLoading={isLoading}
-          isOpen={isOpen}
-          onClose={handleCloseModal}
-        >
-          <Typography text="Are you want to delete?" type="base" />
-        </Modal>
+        <Modal.Wrapper isOpen={isOpen}>
+          <Modal.Form
+            type="delete"
+            title="Delete selected mentor"
+            isLoading={isLoading}
+            onClose={handleCloseModal}
+          >
+            <Typography text="Are you want to delete?" type="base" />
+          </Modal.Form>
+        </Modal.Wrapper>
       </form>
     </>
   );

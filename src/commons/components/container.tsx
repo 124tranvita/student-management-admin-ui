@@ -109,11 +109,11 @@ export const FullContainer: React.FC<Props> = ({ children }) => {
   );
 };
 
-/** List Wrapper */
-export const ListWrapper: React.FC<Props> = ({ children }) => {
-  return (
-    <div className="overflow-y-auto">
-      <ul className="h-full">{children}</ul>
-    </div>
-  );
-};
+// /** List Wrapper */
+// export const ListWrapper: React.FC<Props> = ({ children }) => {
+//   return (
+//     <div className="overflow-y-auto">
+//       <ul className="h-full">{children}</ul>
+//     </div>
+//   );
+// };
