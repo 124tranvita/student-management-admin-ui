@@ -1,12 +1,10 @@
 import * as Yup from "yup";
 
-export const createValidationSchema = () => {
-  return Yup.object().shape({
-    /** email */
-    email: Yup.string().email("Invalid email address").required("Required"),
-    /** password */
-    password: Yup.string()
-      .required("Required")
-      .min(8, "Password must more than 8 characters"),
-  });
-};
+export const validationSchema = Yup.object({
+  /** email */
+  email: Yup.string().email("Email invalid.").required("Required"),
+  /** password */
+  password: Yup.string()
+    .min(8, "Password must more than 8 characters")
+    .required("Password is required"),
+}).required();

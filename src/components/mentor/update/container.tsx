@@ -2,23 +2,17 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useAuthContext } from "../../../hooks/useAuthContext";
-import useCallApi from "../../../hooks/useCallApi";
 import * as Constants from "../../../commons/constants";
-import {
-  Response,
-  Mentor,
-  responseInitial,
-  mentorInitial,
-} from "../../../commons/model";
+import { Mentor, mentorInitial } from "../../../commons/model";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import { Buttons } from "../../../commons/components";
 import { EditIcon } from "../../../commons/components/icons";
-import Modal from "../../../commons/components/modal";
 import { UpdateFormType } from "./type";
 import { validationSchema } from "./validatation-schema";
 import UpdateForm from "./update-form";
 import { validateSubmission } from "./validate-submission";
+import useCallMentorApi from "../hooks/useCallMentorApi";
+import { Modal } from "../../../commons/compound-components";
 
 type Props = {
   mentor: Mentor;
@@ -52,25 +46,36 @@ const UpdateContainer: React.FC<Props> = ({
     resolver: yupResolver(validationSchema),
   });
 
-  console.log({ errors });
-
   /** Custom hooks */
-  const { userInfo } = useAuthContext();
-  const { callApi, response, isLoading, error } = useCallApi<Response<Mentor>>({
-    ...responseInitial,
-    data: mentorInitial,
-  });
+  const { callApiOnUpdate, response, isLoading, error } =
+    useCallMentorApi<Mentor>(mentorInitial);
+
+  /** Trigger to reset defaultValues when the value is changed */
+  useEffect(() => {
+    const values = {
+      email: mentor.email,
+      name: mentor.name,
+      languages: mentor.languages.toString(),
+      education: mentor.education,
+      specialized: mentor.specialized,
+      avatar: mentor.avatar,
+      roles: mentor.roles,
+    };
+
+    reset(values);
+  }, [mentor, reset]);
 
   /** Check API response */
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
       setMentors((prevState: Mentor[]) => {
-        const index = prevState.findIndex(
+        const data = [...prevState];
+        const index = data.findIndex(
           (item: Mentor) => item._id === response.data._id
         );
 
-        prevState[index] = response.data;
-        return [...prevState];
+        data[index] = response.data;
+        return [...data];
       });
 
       // Reset form them close modal on success
@@ -78,11 +83,13 @@ const UpdateContainer: React.FC<Props> = ({
       setIsOpen(false);
       setEventId(Constants.EventId.None);
     } else {
-      console.error({ error });
+      if (error) {
+        console.error({ error });
+      }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
+  }, [response, error]);
 
   /** Create Submit */
   const onSubmit = useCallback(
@@ -107,16 +114,9 @@ const UpdateContainer: React.FC<Props> = ({
         roles: values.roles,
       };
 
-      callApi(`mentor/${mentor._id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${userInfo.tokens.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      callApiOnUpdate<Omit<UpdateFormType, "languages">>(mentor._id, data);
     },
-    [callApi, setError, mentor, userInfo.tokens.accessToken]
+    [mentor, callApiOnUpdate, setError]
   );
 
   /** Handle open modal */
@@ -142,15 +142,16 @@ const UpdateContainer: React.FC<Props> = ({
         <EditIcon />
       </Buttons.RoundedIconButton>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Modal
-          type="update"
-          title={`Update mentor ${mentor.name}`}
-          isLoading={isLoading}
-          isOpen={isOpen}
-          onClose={handleCloseModal}
-        >
-          <UpdateForm register={register} errors={errors} />
-        </Modal>
+        <Modal.Wrapper isOpen={isOpen}>
+          <Modal.Form
+            type="update"
+            title={`Update mentor ${mentor.name}`}
+            isLoading={isLoading}
+            onClose={handleCloseModal}
+          >
+            <UpdateForm register={register} errors={errors} />
+          </Modal.Form>
+        </Modal.Wrapper>
       </form>
     </>
   );

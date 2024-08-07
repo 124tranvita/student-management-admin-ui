@@ -1,17 +1,13 @@
 // src/components/mentor/delete/container.tsx
 import React, { useCallback, useEffect, useState } from "react";
-import { useAuthContext } from "../../../hooks/useAuthContext";
-import useCallApi from "../../../hooks/useCallApi";
 import * as Constants from "../../../commons/constants";
-import {
-  Response,
-  Mentor,
-  responseInitial,
-  mentorInitial,
-} from "../../../commons/model";
+import { Mentor, mentorInitial } from "../../../commons/model";
 import { isNotNullData, isResponseSuccessfully } from "../../../commons/utils";
 import { Buttons, Typography } from "../../../commons/components";
-import Modal from "../../../commons/components/modal";
+
+import { DeleteIcon } from "../../../commons/components/icons";
+import useCallMentorApi from "../hooks/useCallMentorApi";
+import { Modal } from "../../../commons/compound-components";
 
 type Props = {
   mentorId: string;
@@ -19,7 +15,7 @@ type Props = {
   setMentors: React.Dispatch<React.SetStateAction<Mentor[]>>;
 };
 
-const CreateContainer: React.FC<Props> = ({
+const DeleteContainer: React.FC<Props> = ({
   mentorId,
   setEventId,
   setMentors,
@@ -27,38 +23,38 @@ const CreateContainer: React.FC<Props> = ({
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   /** Custom hooks */
-  const { userInfo } = useAuthContext();
-  const { callApi, response, isLoading, error } = useCallApi<Response<Mentor>>({
-    ...responseInitial,
-    data: mentorInitial,
-  });
+  const { callApiOnDelete, response, isLoading, error } =
+    useCallMentorApi<Mentor>(mentorInitial);
 
   /** Check API response */
   useEffect(() => {
     if (isResponseSuccessfully(response) && isNotNullData(response.data)) {
-      setMentors((prevState: Mentor[]) => [...prevState, response.data]);
+      setMentors((prevState: Mentor[]) => {
+        const filtered = prevState.filter(
+          (item: Mentor) => item._id !== response.data._id
+        );
+
+        return [...filtered];
+      });
     } else {
-      console.error({ error });
+      if (error) {
+        console.error({ error });
+      }
     }
 
     // Reset form them close modal on success
     setIsOpen(false);
     setEventId(Constants.EventId.None);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
+  }, [response, error]);
 
-  /** Create Submit */
+  /** Handle submit */
   const handleSubmit = useCallback(
-    () => {
-      callApi(`mentor/${mentorId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${userInfo.tokens.accessToken}`,
-        },
-      });
+    (e: React.FormEvent<HTMLFormElement>) => {
+      callApiOnDelete(mentorId);
+      e.preventDefault();
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [callApi, mentorId, userInfo.tokens.accessToken]
+    [callApiOnDelete, mentorId]
   );
 
   /** Handle open modal */
@@ -74,25 +70,27 @@ const CreateContainer: React.FC<Props> = ({
 
   return (
     <>
-      <Buttons.Button
+      <Buttons.RoundedIconButton
         type="button"
-        label="Add"
         onClick={handleOpenModal}
-        variant="primary"
-      />
-      <form onSubmit={handleSubmit}>
-        <Modal
-          type="delete"
-          title="Add new mentor"
-          isLoading={isLoading}
-          isOpen={isOpen}
-          onClose={handleCloseModal}
-        >
-          <Typography text="Are you want to delete?" type="base" />
-        </Modal>
+        variant="danger"
+      >
+        <DeleteIcon />
+      </Buttons.RoundedIconButton>
+      <form onSubmit={(e) => handleSubmit(e)}>
+        <Modal.Wrapper isOpen={isOpen}>
+          <Modal.Form
+            type="delete"
+            title="Delete selected mentor"
+            isLoading={isLoading}
+            onClose={handleCloseModal}
+          >
+            <Typography text="Are you want to delete?" type="base" />
+          </Modal.Form>
+        </Modal.Wrapper>
       </form>
     </>
   );
 };
 
-export default CreateContainer;
+export default DeleteContainer;

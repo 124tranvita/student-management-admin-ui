@@ -1,9 +1,4 @@
-export type SigninFormikProps = {
+export type SigninFormType = {
   email: string;
   password: string;
-};
-
-export const signinFormikInitial: SigninFormikProps = {
-  email: "",
-  password: "",
 };

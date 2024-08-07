@@ -7,6 +7,8 @@ export enum EventId {
   Assign = "assign",
   Unassign = "unassign",
   RenewToken = "renewToken",
+  Filter = "filter",
+  Search = "search",
   None = "",
 }
 

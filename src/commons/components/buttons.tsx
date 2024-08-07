@@ -7,6 +7,7 @@ import React, {
 import { useNavigate } from "react-router-dom";
 import { classNames } from "../utils";
 import { BackIcon, ReloadIcon, SwitchIcon } from "./icons";
+import { EventId } from "../constants";
 
 enum Variant {
   Primary = "primary",
@@ -200,13 +201,17 @@ export const ReloadButton: React.FC = () => {
 type SwitchButtonProps = {
   filter: string;
   setFilter: Dispatch<SetStateAction<string>>;
+  setEventId: (value: string) => void;
 };
 
 export const SwitchButton: React.FC<SwitchButtonProps> = ({
   filter,
   setFilter,
+  setEventId,
 }) => {
   const handleSwitch = () => {
+    setEventId(EventId.Filter);
+
     if (filter === "0") {
       setFilter("1");
     } else {

@@ -1,26 +1,29 @@
-import { Form } from "formik";
 import { FC } from "react";
-import { FormikTextInput } from "../../../commons/components";
+import { UseFormRegister, FieldErrors } from "react-hook-form";
+import { Input } from "../../../commons/hook-form-component";
+import { SigninFormType } from "./types";
 
-const className =
-  "bg-slate-50 dark:bg-slate-800 appearance-none border-b-1 border-gray-200 mb-3 w-full py-2 px-4 text-gray-500 leading-tight focus:outline-none focus:bg-slate-100 focus:border-indigo-500";
+type Props = {
+  register: UseFormRegister<SigninFormType>;
+  errors: FieldErrors<SigninFormType>;
+};
 
-const SigninForm: FC = () => {
+const SigninForm: FC<Props> = ({ register, errors }) => {
   return (
-    <Form>
-      <FormikTextInput
+    <>
+      <Input
         label="Email"
-        name="email"
-        type="text"
-        className={className}
+        errors={errors}
+        type="email"
+        {...register("email")}
       />
-      <FormikTextInput
+      <Input
         label="Password"
-        name="password"
+        errors={errors}
         type="password"
-        className={className}
+        {...register("password")}
       />
-    </Form>
+    </>
   );
 };
 

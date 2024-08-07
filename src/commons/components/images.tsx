@@ -8,11 +8,11 @@ type Props = {
 
 export const AvatarImg: React.FC<Props> = ({
   path,
-  width = "32",
-  height = "32",
+  width = "46",
+  height = "46",
 }) => {
   return (
-    <div className="p-1 mx-4">
+    <>
       <img
         className="object-cover"
         src={path}
@@ -20,6 +20,6 @@ export const AvatarImg: React.FC<Props> = ({
         width={width}
         height={height}
       />
-    </div>
+    </>
   );
 };
